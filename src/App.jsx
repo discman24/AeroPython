@@ -187,7 +187,7 @@ const App = () => {
             {/* Modules done */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-full text-[10px] font-black">
               <Trophy className="w-3 h-3 text-cyan-400" />
-              <span className="text-cyan-400 tabular-nums">{stats.modulesCompleted}/12</span>
+              <span className="text-cyan-400 tabular-nums">{stats.modulesCompleted}/40</span>
             </div>
             {/* API status */}
             <div className={`flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border rounded-full text-[10px] font-black transition-all ${apiKey ? 'border-cyan-500/50 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.15)]' : 'border-red-500/50 text-red-400'}`}>

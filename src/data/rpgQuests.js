@@ -1,881 +1,1581 @@
 /**
- * AeroPython RPG — Quest Data
- * Each region has an intro story, 5 quests with narrative + code challenges,
- * and a boss battle. Quests map to Python concepts from the roadmap.
+ * AeroPython RPG — Quest Data (Genshin Impact Style)
+ * 8 Elemental Regions, each with 5 quests + boss battle.
+ * Language tuned for age 10. Simple, fun, exciting!
  */
 
+// ─────────────────────────────────────────────
+// PORTRAITS — Who is talking?
+// Each portrait needs: emoji (display icon) + element (links to ELEMENTS key)
+// ─────────────────────────────────────────────
+export const PORTRAITS = {
+  aero:    { emoji: '✈️', element: 'wind'      },
+  ignis:   { emoji: '🔥', element: 'fire'      },
+  frost:   { emoji: '❄️', element: 'ice'       },
+  bolt:    { emoji: '⚡', element: 'lightning' },
+  wave:    { emoji: '🌊', element: 'water'     },
+  petra:   { emoji: '🪨', element: 'earth'     },
+  verde:   { emoji: '🌿', element: 'nature'    },
+  cipher:  { emoji: '🔮', element: 'void'      },
+  default: { emoji: '💬', element: 'wind'      },
+};
+
+// ─────────────────────────────────────────────
+// ELEMENTS — Genshin-style element data
+// Each needs: color, icon, name, border (for card outlines), bg (for tinted backgrounds)
+// ─────────────────────────────────────────────
+export const ELEMENTS = {
+  wind:      { color: '#22d3ee', icon: '💨', name: 'Wind',      border: '#22d3ee33', bg: '#22d3ee0d', glow: '0 0 20px rgba(34,211,238,0.3)',  particle: '✦' },
+  fire:      { color: '#ef4444', icon: '🔥', name: 'Fire',      border: '#ef444433', bg: '#ef44440d', glow: '0 0 20px rgba(239,68,68,0.3)',   particle: '🔥' },
+  ice:       { color: '#93c5fd', icon: '❄️', name: 'Ice',       border: '#93c5fd33', bg: '#93c5fd0d', glow: '0 0 20px rgba(147,197,253,0.3)', particle: '❄️' },
+  lightning: { color: '#fbbf24', icon: '⚡', name: 'Lightning', border: '#fbbf2433', bg: '#fbbf240d', glow: '0 0 20px rgba(251,191,36,0.3)',  particle: '⚡' },
+  water:     { color: '#3b82f6', icon: '🌊', name: 'Water',     border: '#3b82f633', bg: '#3b82f60d', glow: '0 0 20px rgba(59,130,246,0.3)',  particle: '💧' },
+  earth:     { color: '#a3793a', icon: '🪨', name: 'Earth',     border: '#a3793a33', bg: '#a3793a0d', glow: '0 0 20px rgba(163,121,58,0.3)',  particle: '🪨' },
+  nature:    { color: '#22c55e', icon: '🌿', name: 'Nature',    border: '#22c55e33', bg: '#22c55e0d', glow: '0 0 20px rgba(34,197,94,0.3)',   particle: '🍃' },
+  void:      { color: '#a855f7', icon: '🔮', name: 'Void',      border: '#a855f733', bg: '#a855f70d', glow: '0 0 20px rgba(168,85,247,0.3)', particle: '✴️' },
+  // Fallback used by components when element lookup fails
+  variables: { color: '#94a3b8', icon: '📦', name: 'Basic',     border: '#94a3b833', bg: '#94a3b80d', glow: '0 0 20px rgba(148,163,184,0.3)', particle: '✦' },
+};
+
+// ─────────────────────────────────────────────
+// COMPANIONS — Unlock one per region!
+// ─────────────────────────────────────────────
+export const COMPANIONS = [
+  { id: 'pyro',   name: 'Pyro the Phoenix',  icon: '🐦‍🔥', element: 'fire',      bonus: 'Extra hints',      unlockAR: 5  },
+  { id: 'glacia', name: 'Glacia the Owl',    icon: '🦉',   element: 'ice',       bonus: 'Slower timer',     unlockAR: 10 },
+  { id: 'spark',  name: 'Spark the Fox',     icon: '🦊',   element: 'lightning', bonus: 'XP boost',         unlockAR: 15 },
+  { id: 'coral',  name: 'Coral the Turtle',  icon: '🐢',   element: 'water',     bonus: 'Error shield',     unlockAR: 20 },
+  { id: 'terra',  name: 'Terra the Bear',    icon: '🐻',   element: 'earth',     bonus: 'Stronger attacks', unlockAR: 25 },
+  { id: 'fern',   name: 'Fern the Cat',      icon: '🐱',   element: 'nature',    bonus: 'Auto-hints',       unlockAR: 30 },
+  { id: 'nova',   name: 'Nova the Dragon',   icon: '🐉',   element: 'void',      bonus: 'All bonuses',      unlockAR: 35 },
+];
+
+// ─────────────────────────────────────────────
+// REGION → ELEMENT mapping (used by WorldMap)
+// ─────────────────────────────────────────────
+export const REGION_ELEMENTS = {
+  1: 'wind',
+  2: 'fire',
+  3: 'ice',
+  4: 'lightning',
+  5: 'water',
+  6: 'earth',
+  7: 'nature',
+  8: 'void',
+};
+
+// ─────────────────────────────────────────────
+// REGION DATA
+// ─────────────────────────────────────────────
 const rpgQuests = {
+
   // ═══════════════════════════════════════════════
-  // REGION 1: The Village of Variables (Module 1)
+  // REGION 1: Whispering Woods (Wind / Nature)
+  // Element: Wind   Biome: Forest
+  // Python concept: print(), text, basic output
   // ═══════════════════════════════════════════════
   region1: {
     id: 1,
-    name: "The Village of Variables",
-    description: "A quiet village where every object has a name and a purpose. The village elder needs your help to restore order.",
+    name: 'Whispering Woods',
+    description: 'A magical forest full of talking trees and wind spirits. But something has gone silent — make the woods speak again!',
     moduleId: 1,
-    icon: "🏘️",
-    color: "#22d3ee",
+    icon: '🌲',
+    color: '#22d3ee',
     unlockLevel: 1,
+    element: 'Wind',
+    biome: 'forest',
     intro: [
-      { speaker: "Elder Pyra", portrait: "elder", text: "Welcome, young coder. Our village is in chaos — names have been forgotten, values lost." },
-      { speaker: "Elder Pyra", portrait: "elder", text: "In this land, everything must be NAMED to exist. A sword without a name is just... nothing." },
-      { speaker: "Elder Pyra", portrait: "elder", text: "Learn the art of VARIABLES — the power to name things — and you can save us all." },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: "Welcome, young adventurer! I'm Captain Aero, your pilot guide. The Whispering Woods have gone totally quiet!",
+      },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: 'The wind spirits are trapped! To free them, you must make the computer TALK. We call this: using print().',
+      },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: "Think of print() like a loudspeaker. Whatever you put inside the brackets — the computer will say it out loud! Ready? Let's go!",
+      },
     ],
     quests: [
       {
-        id: "r1q1",
-        title: "First Words",
-        enemy: { name: "Silence Slime", hp: 30, icon: "🫧" },
-        story: "A blob of silence has consumed the village square. The only way to banish it? Make noise. Speak your first Python words!",
-        instructions: "Use print() to display the message: Hello, AeroPython!",
-        starterCode: '# Banish the Silence Slime!\n# Type your code below:\n\n',
-        expectedOutput: "Hello, AeroPython!",
-        validationType: "exact",
+        id: 'r1q1',
+        title: 'Wake the Forest',
+        enemy: { name: 'Silence Slime', hp: 30, icon: '🫧' },
+        story: 'A giant Silence Slime has swallowed all the sounds in the forest! The only way to defeat it is to make noise. Type a message and make the computer speak!',
+        instructions: 'Use print() to show the message: Hello, AeroPython!',
+        starterCode:
+          '# The Silence Slime fears noise!\n' +
+          '# Use print() to make the computer speak.\n' +
+          '# Example: print("Hi there!")\n' +
+          '\n' +
+          '# Write your code below:\n',
+        expectedOutput: 'Hello, AeroPython!',
+        validationType: 'exact',
         hints: [
-          "The print() function displays text on screen",
-          'Put your text inside quotes: print("your text here")',
+          'print() makes the computer show words on screen. Try typing print("Hello, AeroPython!")',
+          'Put the words inside speech marks "like this" and put that inside print()',
           'print("Hello, AeroPython!")',
         ],
         xpReward: 20,
-        concept: "print()",
+        concept: 'print()',
+        elementalDamage: 5,
       },
       {
-        id: "r1q2",
-        title: "Name the Sword",
-        enemy: { name: "Nameless Blade", hp: 40, icon: "⚔️" },
-        story: "A powerful blade lies on the ground, but it has no name. Without a name, it cannot be wielded. Create a variable to name it!",
-        instructions: "Create a variable called weapon and set it to \"Dragon Fang\". Then print it.",
-        starterCode: '# Name the blade to wield it!\n\n\n# Print the weapon name\n',
-        expectedOutput: "Dragon Fang",
-        validationType: "exact",
+        id: 'r1q2',
+        title: 'Call the Wind',
+        enemy: { name: 'Grumble Toad', hp: 35, icon: '🐸' },
+        story: "A grumpy Grumble Toad is blocking the path! It will only move if you say the magic words. Print two lines — one after the other!",
+        instructions: 'Print "Whoooosh!" on the first line, then print "The wind blows!" on the second line.',
+        starterCode:
+          '# Print two messages, one on each line!\n' +
+          '# Each print() starts a new line.\n' +
+          '\n' +
+          '# Line 1:\n' +
+          '\n' +
+          '# Line 2:\n',
+        expectedOutput: 'Whoooosh!\nThe wind blows!',
+        validationType: 'exact',
         hints: [
-          "Variables store values: my_variable = \"some value\"",
-          'weapon = "Dragon Fang"',
-          'weapon = "Dragon Fang"\nprint(weapon)',
+          'You can use print() more than once! Each one makes a new line.',
+          'First write print("Whoooosh!") then write print("The wind blows!") below it.',
+          'print("Whoooosh!")\nprint("The wind blows!")',
+        ],
+        xpReward: 20,
+        concept: 'multiple print() calls',
+        elementalDamage: 5,
+      },
+      {
+        id: 'r1q3',
+        title: 'The Talking Tree',
+        enemy: { name: 'Grumpy Stump', hp: 40, icon: '🪵' },
+        story: 'An old Grumpy Stump is blocking the river crossing! It will only let you pass if you can make the computer say its full name on one line with a space in the middle.',
+        instructions: 'Print "Aero Python" — both words on the same line with a space between them.',
+        starterCode:
+          '# The Grumpy Stump wants to hear its name!\n' +
+          '# Print both words with a space between them.\n' +
+          '\n' +
+          '# Your code:\n',
+        expectedOutput: 'Aero Python',
+        validationType: 'exact',
+        hints: [
+          'You can put a space inside your quote marks, like "Hello World".',
+          'Try print("Aero Python") — the space is inside the quotes!',
+          'print("Aero Python")',
         ],
         xpReward: 25,
-        concept: "variables",
+        concept: 'printing text with spaces',
+        elementalDamage: 5,
       },
       {
-        id: "r1q3",
-        title: "The Potion Counter",
-        enemy: { name: "Math Goblin", hp: 50, icon: "👺" },
-        story: "The Math Goblin has scrambled the potion inventory! Calculate the total potions to defeat it.",
-        instructions: "Create variables: health_potions = 5, mana_potions = 3. Calculate total = health_potions + mana_potions. Print the total.",
-        starterCode: '# Count the potions to defeat the Math Goblin!\n\n\n\n# Print the total\n',
-        expectedOutput: "8",
-        validationType: "exact",
+        id: 'r1q4',
+        title: 'Wind Chant',
+        enemy: { name: 'Echo Bat', hp: 45, icon: '🦇' },
+        story: 'The Echo Bat copies everything you say — backwards! Confuse it by printing the same word THREE times in a row, each on its own line.',
+        instructions: 'Print "Wind!" three times, each on a new line.',
+        starterCode:
+          '# Print "Wind!" three separate times!\n' +
+          '# Each print() goes on its own line in your code.\n' +
+          '\n' +
+          '# First time:\n' +
+          '\n' +
+          '# Second time:\n' +
+          '\n' +
+          '# Third time:\n',
+        expectedOutput: 'Wind!\nWind!\nWind!',
+        validationType: 'exact',
         hints: [
-          "Create number variables without quotes: count = 5",
-          "Add variables together: total = a + b",
-          'health_potions = 5\nmana_potions = 3\ntotal = health_potions + mana_potions\nprint(total)',
+          'Use print() three separate times! Copy and paste is okay.',
+          'Write print("Wind!") three times, one below the other.',
+          'print("Wind!")\nprint("Wind!")\nprint("Wind!")',
         ],
-        xpReward: 30,
-        concept: "integers & math",
+        xpReward: 25,
+        concept: 'repeating print()',
+        elementalDamage: 8,
       },
       {
-        id: "r1q4",
-        title: "The Hero's Profile",
-        enemy: { name: "Identity Thief", hp: 60, icon: "🎭" },
-        story: "The Identity Thief steals heroes' descriptions! Create a complete hero profile using f-strings to reclaim your identity.",
-        instructions: 'Set name = "Caveman", level = 1, weapon = "Club". Print: "Caveman - Level 1 - Weapon: Club" using an f-string.',
-        starterCode: '# Create your hero profile!\n\nname = "Caveman"\n\n\n# Use an f-string to print your profile\n',
-        expectedOutput: "Caveman - Level 1 - Weapon: Club",
-        validationType: "exact",
+        id: 'r1q5',
+        title: '🏆 BOSS: Silent Storm',
+        enemy: { name: 'Silent Storm', hp: 100, icon: '🌪️', isBoss: true },
+        story: 'BOSS BATTLE! The Silent Storm is a giant tornado that swallowed all the words in the forest! To defeat it, you must print a whole story — 4 lines that tell what happened. Ready, hero?',
+        instructions:
+          'Print these 4 lines exactly:\n' +
+          'Line 1: "The woods were quiet."\n' +
+          'Line 2: "A hero arrived."\n' +
+          'Line 3: "They typed their code."\n' +
+          'Line 4: "The forest spoke again!"',
+        starterCode:
+          '# BOSS BATTLE! Defeat the Silent Storm!\n' +
+          '# Print 4 lines to tell the story.\n' +
+          '\n' +
+          '# Line 1:\n' +
+          '\n' +
+          '# Line 2:\n' +
+          '\n' +
+          '# Line 3:\n' +
+          '\n' +
+          '# Line 4:\n',
+        expectedOutput: 'The woods were quiet.\nA hero arrived.\nThey typed their code.\nThe forest spoke again!',
+        validationType: 'exact',
         hints: [
-          "f-strings let you put variables inside strings: f\"{variable}\"",
-          'f"{name} - Level {level} - Weapon: {weapon}"',
-          'name = "Caveman"\nlevel = 1\nweapon = "Club"\nprint(f"{name} - Level {level} - Weapon: {weapon}")',
+          'You need four print() commands — one for each line of the story.',
+          'Make sure the words match EXACTLY — capital letters and full stops matter!',
+          'print("The woods were quiet.")\nprint("A hero arrived.")\nprint("They typed their code.")\nprint("The forest spoke again!")',
         ],
-        xpReward: 35,
-        concept: "f-strings",
-      },
-      {
-        id: "r1q5",
-        title: "🏆 BOSS: The Type Titan",
-        enemy: { name: "Type Titan", hp: 100, icon: "🗿", isBoss: true },
-        story: "The Type Titan guards the exit to the next region. It can only be defeated by proving you understand data types. Show the type of three different values!",
-        instructions: 'Print the type of "hello", then 42, then 3.14 — each on its own line. Use type().',
-        starterCode: '# Defeat the Type Titan by identifying all types!\n\n# Print the type of a string\n\n# Print the type of an integer\n\n# Print the type of a float\n',
-        expectedOutput: "<class 'str'>\n<class 'int'>\n<class 'float'>",
-        validationType: "exact",
-        hints: [
-          "type() returns the type of a value: type(42) → <class 'int'>",
-          'print(type("hello"))',
-          'print(type("hello"))\nprint(type(42))\nprint(type(3.14))',
-        ],
-        xpReward: 75,
-        concept: "data types",
+        xpReward: 100,
+        concept: 'print() mastery',
+        elementalDamage: 15,
       },
     ],
     completion: [
-      { speaker: "Elder Pyra", portrait: "elder", text: "Incredible! You've mastered the art of Variables. The village is saved!" },
-      { speaker: "Elder Pyra", portrait: "elder", text: "But darker challenges await beyond the village gates. The Crossroads of Conditions lies ahead..." },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: 'AMAZING! The Whispering Woods are alive again! The wind spirits are dancing!',
+      },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: "You learned how to make the computer talk using print(). That's the very first step every programmer takes!",
+      },
+      {
+        speaker: 'Captain Aero',
+        portrait: 'aero',
+        text: "Next stop: Ember Highlands! Grab your fireproof boots — it's going to get HOT. We'll learn about variables: magical boxes that hold things!",
+      },
     ],
+    rewards: {
+      items: ['Wind Crystal', 'Forest Feather', "Aero's Pilot Badge"],
+      companionUnlock: null,
+      titleUnlock: 'Forest Whisperer',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 2: The Crossroads of Conditions (Module 2)
+  // REGION 2: Ember Highlands (Fire)
+  // Element: Fire   Biome: Volcano
+  // Python concept: variables, numbers, math
   // ═══════════════════════════════════════════════
   region2: {
     id: 2,
-    name: "The Crossroads of Conditions",
-    description: "Every path splits into choices. Only those who master if/else can navigate the maze.",
+    name: 'Ember Highlands',
+    description: "Glowing volcanoes and rivers of lava! The Forge Master needs your help to rebuild the smithy using the power of variables.",
     moduleId: 2,
-    icon: "🔀",
-    color: "#a78bfa",
+    icon: '🌋',
+    color: '#ef4444',
     unlockLevel: 6,
+    element: 'Fire',
+    biome: 'volcano',
     intro: [
-      { speaker: "Guardian Rex", portrait: "guardian", text: "Halt! This is the Crossroads. Every step forward requires a DECISION." },
-      { speaker: "Guardian Rex", portrait: "guardian", text: "If your logic is strong, you'll pass. Else... well, let's not think about that." },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: "WELCOME to the Ember Highlands! I'm Forge Master Ignis. I forge weapons in the volcano's fire!",
+      },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: 'But my workshop is in chaos! I need VARIABLES. Think of a variable as a magic box — you put something inside, give it a name, and you can use it anytime!',
+      },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: 'For example: sword = "Dragon Fang" is a box called "sword" that holds the name "Dragon Fang". Easy! Now let\'s forge some code!',
+      },
     ],
     quests: [
       {
-        id: "r2q1",
-        title: "The Gatekeeper",
-        enemy: { name: "Gate Guardian", hp: 40, icon: "🚪" },
-        story: "The gate only opens for those with the right password. Write a condition to check it!",
-        instructions: 'Set password = "python". Write an if statement: if password equals "python", print "Access Granted". Otherwise print "Access Denied".',
-        starterCode: 'password = "python"\n\n# Check the password\n',
-        expectedOutput: "Access Granted",
-        validationType: "exact",
+        id: 'r2q1',
+        title: 'Name the Sword',
+        enemy: { name: 'Nameless Blade', hp: 35, icon: '⚔️' },
+        story: 'A powerful sword is floating in mid-air with no name! A nameless sword has no power. Give it a name by putting it in a variable box, then show the name!',
+        instructions: 'Create a variable called weapon and put "Dragon Fang" inside it. Then print weapon.',
+        starterCode:
+          '# Put the sword name in a box called "weapon"\n' +
+          '# Like this: weapon = "Dragon Fang"\n' +
+          '\n' +
+          '# Step 1: Create the variable\n' +
+          '\n' +
+          '# Step 2: Print it\n',
+        expectedOutput: 'Dragon Fang',
+        validationType: 'exact',
         hints: [
-          "Use == to compare values: if x == y:",
-          'if password == "python":\n    print("Access Granted")',
-          'password = "python"\nif password == "python":\n    print("Access Granted")\nelse:\n    print("Access Denied")',
+          'A variable is like a box with a name. Write: weapon = "Dragon Fang"',
+          'Then use print() to show what is in the box: print(weapon)',
+          'weapon = "Dragon Fang"\nprint(weapon)',
+        ],
+        xpReward: 20,
+        concept: 'string variables',
+        elementalDamage: 6,
+      },
+      {
+        id: 'r2q2',
+        title: 'Count the Potions',
+        enemy: { name: 'Potion Thief', hp: 40, icon: '🧪' },
+        story: 'The Potion Thief stole most of our healing potions! Count what we have left. Variables can hold numbers too — without any quote marks!',
+        instructions: 'Create a variable called potions and set it to 7. Then print it.',
+        starterCode:
+          "# Number variables don't need quote marks!\n" +
+          '# Like this: potions = 7\n' +
+          '\n' +
+          '# Step 1: Create the number variable\n' +
+          '\n' +
+          '# Step 2: Print it\n',
+        expectedOutput: '7',
+        validationType: 'exact',
+        hints: [
+          'Numbers go straight in without quotes: potions = 7',
+          'Then print the variable: print(potions)',
+          'potions = 7\nprint(potions)',
+        ],
+        xpReward: 20,
+        concept: 'number variables',
+        elementalDamage: 6,
+      },
+      {
+        id: 'r2q3',
+        title: 'Lava Math',
+        enemy: { name: 'Magma Crab', hp: 50, icon: '🦀' },
+        story: 'The Magma Crab challenges you to a math duel! Add two numbers together. Python can do math just like a calculator — try it!',
+        instructions: 'Create fire_power = 25 and ice_power = 15. Add them together and save as total. Print total.',
+        starterCode:
+          '# Python can do maths!\n' +
+          '# + adds, - subtracts, * multiplies, / divides\n' +
+          '\n' +
+          'fire_power = 25\n' +
+          'ice_power = 15\n' +
+          '\n' +
+          '# Add them together:\n' +
+          'total = \n' +
+          '\n' +
+          '# Show the answer:\n',
+        expectedOutput: '40',
+        validationType: 'exact',
+        hints: [
+          'To add two variables: total = fire_power + ice_power',
+          'Then print the total: print(total)',
+          'fire_power = 25\nice_power = 15\ntotal = fire_power + ice_power\nprint(total)',
         ],
         xpReward: 25,
-        concept: "if/else",
+        concept: 'addition with variables',
+        elementalDamage: 8,
       },
       {
-        id: "r2q2",
-        title: "Potion Strength",
-        enemy: { name: "Poison Sprite", hp: 50, icon: "🧪" },
-        story: "Different potions have different strength levels. Categorize this potion's power!",
-        instructions: 'Set power = 75. If power >= 80, print "Legendary". If power >= 50, print "Strong". If power >= 20, print "Weak". Otherwise print "Useless".',
-        starterCode: 'power = 75\n\n# Classify the potion\n',
-        expectedOutput: "Strong",
-        validationType: "exact",
+        id: 'r2q4',
+        title: 'Forge the Armour',
+        enemy: { name: 'Rust Dragon Jr.', hp: 60, icon: '🦕' },
+        story: "Rust Dragon Jr. is eating all the metal! To make armour strong, multiply the ore count by the heat level. Protect the forge!",
+        instructions: 'Create ore = 8 and heat = 5. Multiply them and save as strength. Print strength.',
+        starterCode:
+          '# Multiplication uses the * star symbol\n' +
+          '# Like this: area = width * height\n' +
+          '\n' +
+          'ore = 8\n' +
+          'heat = 5\n' +
+          '\n' +
+          '# Multiply to get armour strength:\n' +
+          'strength = \n' +
+          '\n' +
+          '# Print it:\n',
+        expectedOutput: '40',
+        validationType: 'exact',
         hints: [
-          "Use elif for multiple conditions: if/elif/elif/else",
-          "Check from highest to lowest so the first match wins",
-          'power = 75\nif power >= 80:\n    print("Legendary")\nelif power >= 50:\n    print("Strong")\nelif power >= 20:\n    print("Weak")\nelse:\n    print("Useless")',
+          'Use * for multiplication: strength = ore * heat',
+          'Then print: print(strength)',
+          'ore = 8\nheat = 5\nstrength = ore * heat\nprint(strength)',
         ],
         xpReward: 30,
-        concept: "if/elif/else",
+        concept: 'multiplication',
+        elementalDamage: 8,
       },
       {
-        id: "r2q3",
-        title: "The Loop Trap",
-        enemy: { name: "Loop Wraith", hp: 60, icon: "🌀" },
-        story: "The Loop Wraith forces you to count. Count from 1 to 5 to break free!",
-        instructions: "Use a for loop with range() to print numbers 1 through 5, each on its own line.",
-        starterCode: '# Count to escape the loop trap!\n\n',
-        expectedOutput: "1\n2\n3\n4\n5",
-        validationType: "exact",
+        id: 'r2q5',
+        title: '🏆 BOSS: Number Dragon',
+        enemy: { name: 'Number Dragon', hp: 120, icon: '🐲', isBoss: true },
+        story: 'BOSS BATTLE! The Number Dragon breathes number-fire! To stop it, you must show your hero stats all in one message. Combine a name (text) and a number in one print!',
+        instructions:
+          'Create: hero = "Ignis Junior" and level = 5. ' +
+          'Print this exact message: "Hero: Ignis Junior is Level 5" — using your variables.',
+        starterCode:
+          '# BOSS BATTLE! Show your hero stats!\n' +
+          '# We use f"..." to mix words and variables.\n' +
+          '# Example: f"My name is {hero}"\n' +
+          '\n' +
+          'hero = "Ignis Junior"\n' +
+          'level = 5\n' +
+          '\n' +
+          '# Print the message:\n',
+        expectedOutput: 'Hero: Ignis Junior is Level 5',
+        validationType: 'exact',
         hints: [
-          "for i in range(start, stop): loops from start to stop-1",
-          "range(1, 6) gives you 1, 2, 3, 4, 5",
-          'for i in range(1, 6):\n    print(i)',
+          'Use an f-string: start with f" then put variable names inside curly braces {}',
+          'Like this: f"Hero: {hero} is Level {level}"',
+          'hero = "Ignis Junior"\nlevel = 5\nprint(f"Hero: {hero} is Level {level}")',
         ],
-        xpReward: 30,
-        concept: "for loops",
-      },
-      {
-        id: "r2q4",
-        title: "Attack Sequence",
-        enemy: { name: "Shield Beetle", hp: 70, icon: "🪲" },
-        story: "The Shield Beetle blocks every third attack. Print your attack pattern!",
-        instructions: 'Loop through numbers 1-6. If the number is divisible by 3, print "BLOCKED". Otherwise print "HIT".',
-        starterCode: '# Attack the Shield Beetle!\n\n',
-        expectedOutput: "HIT\nHIT\nBLOCKED\nHIT\nHIT\nBLOCKED",
-        validationType: "exact",
-        hints: [
-          "Use % (modulo) to check divisibility: if n % 3 == 0",
-          "Combine a for loop with an if/else inside it",
-          'for i in range(1, 7):\n    if i % 3 == 0:\n        print("BLOCKED")\n    else:\n        print("HIT")',
-        ],
-        xpReward: 35,
-        concept: "loops + conditionals",
-      },
-      {
-        id: "r2q5",
-        title: "🏆 BOSS: The Logic Sphinx",
-        enemy: { name: "Logic Sphinx", hp: 120, icon: "🦁", isBoss: true },
-        story: "The Logic Sphinx asks its riddle: 'Print only the even numbers between 1 and 10 that are also greater than 4.' Solve it or be turned to stone!",
-        instructions: "Use a for loop. For each number from 1 to 10, if it's even AND greater than 4, print it.",
-        starterCode: '# Solve the Sphinx riddle!\n\n',
-        expectedOutput: "6\n8\n10",
-        validationType: "exact",
-        hints: [
-          "Use 'and' to combine conditions: if a and b:",
-          "Check both: number % 2 == 0 and number > 4",
-          'for n in range(1, 11):\n    if n % 2 == 0 and n > 4:\n        print(n)',
-        ],
-        xpReward: 80,
-        concept: "and/or operators",
+        xpReward: 110,
+        concept: 'f-strings (combining text + numbers)',
+        elementalDamage: 18,
       },
     ],
     completion: [
-      { speaker: "Guardian Rex", portrait: "guardian", text: "Your logic is sharp! The Crossroads bow to your wisdom." },
-      { speaker: "Guardian Rex", portrait: "guardian", text: "The Data Vaults await. There, you'll learn to store entire collections of power..." },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: 'INCREDIBLE! You defeated the Number Dragon! The forge is safe!',
+      },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: 'You now know about variables — magic boxes for text AND numbers. And you can do maths and mix them together!',
+      },
+      {
+        speaker: 'Forge Master Ignis',
+        portrait: 'ignis',
+        text: "Take Pyro the Phoenix with you — he'll give you extra hints when you need them. The Crystal Caverns await!",
+      },
     ],
+    rewards: {
+      items: ['Ember Shard', "Forge Master's Hammer", 'Fire Opal'],
+      companionUnlock: 'pyro',
+      titleUnlock: 'Ember Forger',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 3: The Data Vaults (Module 3)
+  // REGION 3: Crystal Caverns (Ice)
+  // Element: Ice   Biome: Tundra
+  // Python concept: if/else, True/False, comparisons
   // ═══════════════════════════════════════════════
   region3: {
     id: 3,
-    name: "The Data Vaults",
-    description: "Ancient vaults filled with collections of treasure. Master lists and dicts to claim them.",
+    name: 'Crystal Caverns',
+    description: 'Glittering ice caves full of frozen monsters and riddles! Only those who can make smart choices will survive.',
     moduleId: 3,
-    icon: "🏛️",
-    color: "#f59e0b",
+    icon: '🧊',
+    color: '#93c5fd',
     unlockLevel: 11,
+    element: 'Ice',
+    biome: 'tundra',
     intro: [
-      { speaker: "Vault Keeper", portrait: "keeper", text: "These vaults hold more than gold. They hold COLLECTIONS — lists, dictionaries, entire inventories of power." },
-      { speaker: "Vault Keeper", portrait: "keeper", text: "A single variable holds one thing. But a LIST holds many. Master this, and you control armies." },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: 'Brrrr! Welcome to the Crystal Caverns. I am Oracle Frost. I see all... possible futures!',
+      },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: 'In this icy land, everything is a CHOICE. If the door is locked, do one thing. Else, do something else. We call this if/else!',
+      },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: '"If it is raining, take an umbrella. Otherwise, wear sunglasses." Python thinks the same way!',
+      },
     ],
     quests: [
       {
-        id: "r3q1",
-        title: "Inventory Check",
-        enemy: { name: "Loot Goblin", hp: 50, icon: "💰" },
-        story: "The Loot Goblin has scattered your inventory! Rebuild it as a list and count your items.",
-        instructions: 'Create a list called inventory with: "sword", "shield", "potion". Print the number of items using len().',
-        starterCode: '# Rebuild your inventory!\n\n\n# Print how many items\n',
-        expectedOutput: "3",
-        validationType: "exact",
+        id: 'r3q1',
+        title: 'The Frozen Door',
+        enemy: { name: 'Ice Doorman', hp: 35, icon: '🚪' },
+        story: 'A big frozen door blocks the path! It only opens for adventurers who know the secret password. Write a choice: if the password is right, open the door!',
+        instructions: 'Set password = "frost". If password equals "frost", print "Door opens!". Otherwise print "Stay out!".',
+        starterCode:
+          '# Make a CHOICE using if/else!\n' +
+          '# if something is true: do this\n' +
+          '# else: do that instead\n' +
+          '\n' +
+          'password = "frost"\n' +
+          '\n' +
+          '# Check the password:\n' +
+          'if password == "frost":\n' +
+          '    # This runs if the password is correct\n' +
+          '    \n' +
+          'else:\n' +
+          '    # This runs if the password is wrong\n' +
+          '    \n',
+        expectedOutput: 'Door opens!',
+        validationType: 'exact',
         hints: [
-          'Lists use square brackets: my_list = ["a", "b", "c"]',
-          "len() returns the length of a list",
-          'inventory = ["sword", "shield", "potion"]\nprint(len(inventory))',
+          'Fill in the blank after if: print("Door opens!")',
+          'Inside the if block: print("Door opens!") — and inside else: print("Stay out!")',
+          'password = "frost"\nif password == "frost":\n    print("Door opens!")\nelse:\n    print("Stay out!")',
         ],
         xpReward: 25,
-        concept: "lists",
+        concept: 'if/else',
+        elementalDamage: 6,
       },
       {
-        id: "r3q2",
-        title: "Gear Up",
-        enemy: { name: "Rust Monster", hp: 55, icon: "🦀" },
-        story: "The Rust Monster corrodes your gear! Add a new item to your list before it's too late!",
-        instructions: 'Start with inventory = ["sword", "shield"]. Use .append() to add "armor". Then print the full list.',
-        starterCode: 'inventory = ["sword", "shield"]\n\n# Add armor to your inventory\n\n# Print the updated inventory\n',
-        expectedOutput: "['sword', 'shield', 'armor']",
-        validationType: "exact",
+        id: 'r3q2',
+        title: 'Too Cold!',
+        enemy: { name: 'Blizzard Pup', hp: 40, icon: '🐺' },
+        story: "The Blizzard Pup only attacks if it's freezing cold! Check the temperature and warn everyone if it is below zero.",
+        instructions: "Set temp = -5. If temp is less than 0, print \"It's freezing! Stay inside!\". Otherwise print \"It's fine, let's go!\".",
+        starterCode:
+          '# Use < to check if something is less than something else\n' +
+          '# Use > to check if something is greater\n' +
+          '\n' +
+          'temp = -5\n' +
+          '\n' +
+          '# Write your if/else here:\n',
+        expectedOutput: "It's freezing! Stay inside!",
+        validationType: 'exact',
         hints: [
-          'Use .append() to add to a list: my_list.append("item")',
-          'inventory.append("armor")',
-          'inventory = ["sword", "shield"]\ninventory.append("armor")\nprint(inventory)',
+          'if temp < 0: means "if temp is less than zero"',
+          'Then print the freezing warning inside the if block.',
+          "temp = -5\nif temp < 0:\n    print(\"It's freezing! Stay inside!\")\nelse:\n    print(\"It's fine, let's go!\")",
+        ],
+        xpReward: 25,
+        concept: 'comparison operators < >',
+        elementalDamage: 6,
+      },
+      {
+        id: 'r3q3',
+        title: 'Potion Power Check',
+        enemy: { name: 'Crystal Goblin', hp: 50, icon: '💎' },
+        story: "The Crystal Goblin stole a potion but doesn't know if it's weak, medium, or strong! Help figure out which one it is using elif (that means \"else if, try another choice\").",
+        instructions: 'Set power = 65. If power >= 80 print "Strong potion!". Elif power >= 40 print "Medium potion!". Else print "Weak potion!".',
+        starterCode:
+          '# elif means "otherwise, try this next check"\n' +
+          '# if ... elif ... else gives us THREE choices!\n' +
+          '\n' +
+          'power = 65\n' +
+          '\n' +
+          'if power >= 80:\n' +
+          '    \n' +
+          'elif power >= 40:\n' +
+          '    \n' +
+          'else:\n' +
+          '    \n',
+        expectedOutput: 'Medium potion!',
+        validationType: 'exact',
+        hints: [
+          'Fill in each print() statement — 65 is between 40 and 80 so "Medium potion!" should print.',
+          'power = 65 means: not >= 80, but IS >= 40 — so the elif runs!',
+          'power = 65\nif power >= 80:\n    print("Strong potion!")\nelif power >= 40:\n    print("Medium potion!")\nelse:\n    print("Weak potion!")',
         ],
         xpReward: 30,
-        concept: "list methods",
+        concept: 'if/elif/else',
+        elementalDamage: 8,
       },
       {
-        id: "r3q3",
-        title: "Monster Manual",
-        enemy: { name: "Bookworm", hp: 60, icon: "📖" },
-        story: "The Bookworm has eaten the monster manual! Rebuild it as a dictionary with the dragon's stats.",
-        instructions: 'Create a dict called dragon with keys "name" = "Pydrake", "hp" = 200, "attack" = 45. Print the dragon\'s name.',
-        starterCode: '# Rebuild the Monster Manual!\n\n\n# Print the dragon\'s name\n',
-        expectedOutput: "Pydrake",
-        validationType: "exact",
+        id: 'r3q4',
+        title: 'True or False?',
+        enemy: { name: 'Riddle Snowman', hp: 55, icon: '⛄' },
+        story: "The Riddle Snowman only melts when you answer True or False correctly. Is the hero's level high enough to enter the ice castle?",
+        instructions: 'Set hero_level = 10 and required_level = 8. Check if hero_level >= required_level. Print "You may enter!" if True, print "Too low!" if False.',
+        starterCode:
+          "# True and False are Python's yes/no answers\n" +
+          '# >= means "greater than or equal to"\n' +
+          '\n' +
+          'hero_level = 10\n' +
+          'required_level = 8\n' +
+          '\n' +
+          '# Write your if/else:\n',
+        expectedOutput: 'You may enter!',
+        validationType: 'exact',
         hints: [
-          'Dictionaries use curly braces: {"key": "value"}',
-          'Access values with: my_dict["key"]',
-          'dragon = {"name": "Pydrake", "hp": 200, "attack": 45}\nprint(dragon["name"])',
+          'if hero_level >= required_level: will be True because 10 is bigger than 8',
+          'Print "You may enter!" inside the if block.',
+          'hero_level = 10\nrequired_level = 8\nif hero_level >= required_level:\n    print("You may enter!")\nelse:\n    print("Too low!")',
         ],
         xpReward: 30,
-        concept: "dictionaries",
+        concept: 'boolean comparisons',
+        elementalDamage: 8,
       },
       {
-        id: "r3q4",
-        title: "Loot the Chest",
-        enemy: { name: "Mimic Chest", hp: 70, icon: "📦" },
-        story: "A chest full of treasure! But first, print each item on its own line using a loop.",
-        instructions: 'Create treasure = ["gold", "ruby", "emerald", "diamond"]. Use a for loop to print each item.',
-        starterCode: '# Open the treasure chest!\n\n\n# Print each item\n',
-        expectedOutput: "gold\nruby\nemerald\ndiamond",
-        validationType: "exact",
+        id: 'r3q5',
+        title: '🏆 BOSS: Logic Sphinx',
+        enemy: { name: 'Logic Sphinx', hp: 130, icon: '🦁', isBoss: true },
+        story: 'BOSS BATTLE! The Logic Sphinx blocks the exit and asks TWO questions at the same time: "Is the hero brave AND do they have a sword?" Both must be true to pass!',
+        instructions: 'Set is_brave = True and has_sword = True. If BOTH are True, print "You may pass, champion!". Otherwise print "Not ready yet!".',
+        starterCode:
+          '# Use "and" to check TWO things at once!\n' +
+          '# Both must be True for the whole thing to be True.\n' +
+          '\n' +
+          'is_brave = True\n' +
+          'has_sword = True\n' +
+          '\n' +
+          '# Check both conditions:\n',
+        expectedOutput: 'You may pass, champion!',
+        validationType: 'exact',
         hints: [
-          "for item in my_list: loops through each element",
-          "print(item) inside the loop prints each one",
-          'treasure = ["gold", "ruby", "emerald", "diamond"]\nfor item in treasure:\n    print(item)',
+          'if is_brave and has_sword: — both must be True!',
+          'Then print "You may pass, champion!"',
+          'is_brave = True\nhas_sword = True\nif is_brave and has_sword:\n    print("You may pass, champion!")\nelse:\n    print("Not ready yet!")',
         ],
-        xpReward: 35,
-        concept: "iterating lists",
-      },
-      {
-        id: "r3q5",
-        title: "🏆 BOSS: The Archive Golem",
-        enemy: { name: "Archive Golem", hp: 150, icon: "🗿", isBoss: true },
-        story: "The Archive Golem tests your knowledge of collections! Build a party roster and display each member's role.",
-        instructions: 'Create a dict: party = {"warrior": "Axe", "mage": "Staff", "healer": "Wand"}. Loop through it and print each role and weapon like: "warrior wields Axe".',
-        starterCode: '# Build the party roster!\n\n\n# Print each member\n',
-        expectedOutput: "warrior wields Axe\nmage wields Staff\nhealer wields Wand",
-        validationType: "exact",
-        hints: [
-          "Use .items() to loop through key-value pairs: for k, v in dict.items():",
-          'print(f"{role} wields {weapon}")',
-          'party = {"warrior": "Axe", "mage": "Staff", "healer": "Wand"}\nfor role, weapon in party.items():\n    print(f"{role} wields {weapon}")',
-        ],
-        xpReward: 85,
-        concept: "dict iteration",
+        xpReward: 120,
+        concept: 'and / or operators',
+        elementalDamage: 18,
       },
     ],
     completion: [
-      { speaker: "Vault Keeper", portrait: "keeper", text: "The vaults recognize a true collector! Your power over data is growing." },
-      { speaker: "Vault Keeper", portrait: "keeper", text: "Next: The Function Forge. There, you'll learn to CREATE your own powers..." },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: 'Brilliant! The Logic Sphinx is defeated! You have mastered the art of choices!',
+      },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: 'if, else, elif, and, or — these are the building blocks of decisions. Every computer program ever made uses them!',
+      },
+      {
+        speaker: 'Oracle Frost',
+        portrait: 'frost',
+        text: "Glacia the Owl joins your team — she'll slow down the timer when things get tricky. Now fly to the Windswept Peaks!",
+      },
     ],
+    rewards: {
+      items: ['Frost Crystal', 'Ice Sphinx Feather', "Oracle's Snowglobe"],
+      companionUnlock: 'glacia',
+      titleUnlock: 'Ice Oracle',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 4: The Function Forge (Module 4)
+  // REGION 4: Windswept Peaks (Lightning)
+  // Element: Lightning   Biome: Mountain
+  // Python concept: for loops, while loops
   // ═══════════════════════════════════════════════
   region4: {
     id: 4,
-    name: "The Function Forge",
-    description: "The ancient forge where heroes craft their own spells. Master functions to create reusable powers.",
+    name: 'Windswept Peaks',
+    description: 'Jagged mountains struck by lightning! Learn to make the computer repeat things over and over without typing them a million times.',
     moduleId: 4,
-    icon: "🔨",
-    color: "#ef4444",
+    icon: '⛰️',
+    color: '#fbbf24',
     unlockLevel: 16,
+    element: 'Lightning',
+    biome: 'mountain',
     intro: [
-      { speaker: "Forge Master", portrait: "forgemaster", text: "Welcome to the Forge! Here, we don't just USE spells — we CREATE them." },
-      { speaker: "Forge Master", portrait: "forgemaster", text: "A FUNCTION is a spell you write once and cast forever. This is true power." },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: "ZAP! I'm Storm Runner Bolt! I run across the mountain tops — I REPEAT the same path again and again at lightning speed!",
+      },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: 'In Python, we call repeating a "loop". A loop lets you do something over and over without typing it 100 times. Imagine counting to 100 — a loop does it in 2 lines!',
+      },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: 'We\'ll use "for" loops to repeat a set number of times. Let\'s go — fast as lightning!',
+      },
     ],
     quests: [
       {
-        id: "r4q1",
-        title: "Craft a Greeting",
-        enemy: { name: "Mute Golem", hp: 50, icon: "🤖" },
-        story: "The Mute Golem can't speak! Create a function that speaks for it.",
-        instructions: 'Define a function called greet() that prints "Greetings, hero!". Then call it.',
-        starterCode: '# Create the greeting spell!\n\n\n# Cast the spell (call the function)\n',
-        expectedOutput: "Greetings, hero!",
-        validationType: "exact",
+        id: 'r4q1',
+        title: 'Lightning Strike 5 Times',
+        enemy: { name: 'Thunder Slug', hp: 40, icon: '🐌' },
+        story: 'The Thunder Slug is very slow! Strike it with lightning 5 times by printing a number each time. A loop does the counting for you!',
+        instructions: 'Use a for loop with range(5) to print the numbers 0, 1, 2, 3, 4 — one per line.',
+        starterCode:
+          '# A for loop repeats code!\n' +
+          '# range(5) counts: 0, 1, 2, 3, 4\n' +
+          '\n' +
+          '# Complete the loop:\n' +
+          'for number in range(5):\n' +
+          '    # Print the number here:\n' +
+          '    \n',
+        expectedOutput: '0\n1\n2\n3\n4',
+        validationType: 'exact',
         hints: [
-          "Define functions with def: def my_function():",
-          'def greet():\n    print("Greetings, hero!")',
-          'def greet():\n    print("Greetings, hero!")\n\ngreet()',
+          'Inside the for loop, add: print(number)',
+          'The loop will run 5 times — each time "number" is the next value.',
+          'for number in range(5):\n    print(number)',
         ],
         xpReward: 25,
-        concept: "def functions",
+        concept: 'for loop with range()',
+        elementalDamage: 7,
       },
       {
-        id: "r4q2",
-        title: "Power Calculator",
-        enemy: { name: "Number Demon", hp: 60, icon: "🔢" },
-        story: "The Number Demon challenges you to calculate attack power! Build a function that takes parameters.",
-        instructions: "Define a function called attack_power(base, multiplier) that returns base * multiplier. Print attack_power(10, 3).",
-        starterCode: '# Build the power calculator!\n\n\n# Test it\n',
-        expectedOutput: "30",
-        validationType: "exact",
+        id: 'r4q2',
+        title: 'Count to the Summit',
+        enemy: { name: 'Boulder Bully', hp: 45, icon: '🪨' },
+        story: 'The Boulder Bully rolls down from the top of the mountain and counts how many steps it takes! Count from 1 to 5 to match its path.',
+        instructions: 'Use a for loop with range(1, 6) to print the numbers 1, 2, 3, 4, 5 — one per line.',
+        starterCode:
+          '# range(start, stop) counts from start UP TO (not including) stop\n' +
+          '# range(1, 6) gives: 1, 2, 3, 4, 5\n' +
+          '\n' +
+          '# Write your loop:\n',
+        expectedOutput: '1\n2\n3\n4\n5',
+        validationType: 'exact',
         hints: [
-          "Functions can take parameters: def func(a, b):",
-          "Use return to send a value back: return result",
-          'def attack_power(base, multiplier):\n    return base * multiplier\n\nprint(attack_power(10, 3))',
+          'for i in range(1, 6): starts at 1 and stops before 6',
+          'Then print(i) inside the loop.',
+          'for i in range(1, 6):\n    print(i)',
+        ],
+        xpReward: 25,
+        concept: 'range(start, stop)',
+        elementalDamage: 7,
+      },
+      {
+        id: 'r4q3',
+        title: 'Storm Shout',
+        enemy: { name: 'Echo Vulture', hp: 55, icon: '🦅' },
+        story: 'The Echo Vulture copies any sound three times! Shout "ZAP!" in a loop three times to overload it.',
+        instructions: 'Use a for loop to print "ZAP!" exactly 3 times.',
+        starterCode:
+          '# Loop 3 times using range(3)\n' +
+          '# Inside the loop, print your shout!\n' +
+          '\n' +
+          '# Your code:\n',
+        expectedOutput: 'ZAP!\nZAP!\nZAP!',
+        validationType: 'exact',
+        hints: [
+          "for _ in range(3): — the underscore means \"we don't need the number\"",
+          'Then print("ZAP!") inside the loop.',
+          'for _ in range(3):\n    print("ZAP!")',
         ],
         xpReward: 30,
-        concept: "parameters & return",
+        concept: 'for loop with string output',
+        elementalDamage: 8,
       },
       {
-        id: "r4q3",
-        title: "Default Shield",
-        enemy: { name: "Chaos Knight", hp: 65, icon: "🛡️" },
-        story: "The Chaos Knight attacks with random strength! Build a defense function with default values.",
-        instructions: 'Define defend(damage, armor=10) that returns damage - armor. Print defend(50) and defend(50, 20) on separate lines.',
-        starterCode: '# Build the defense spell!\n\n\n# Test with default armor\n\n# Test with custom armor\n',
-        expectedOutput: "40\n30",
-        validationType: "exact",
+        id: 'r4q4',
+        title: 'Loop Through Weapons',
+        enemy: { name: 'Gear Gargoyle', hp: 65, icon: '🗿' },
+        story: 'The Gear Gargoyle steals weapons! Show off every weapon in your collection by looping through a list of them.',
+        instructions: 'Create weapons = ["sword", "bow", "staff"]. Use a for loop to print each weapon on its own line.',
+        starterCode:
+          '# You can loop through a list too!\n' +
+          '# for item in my_list: goes through each thing in the list.\n' +
+          '\n' +
+          'weapons = ["sword", "bow", "staff"]\n' +
+          '\n' +
+          '# Loop through and print each weapon:\n',
+        expectedOutput: 'sword\nbow\nstaff',
+        validationType: 'exact',
         hints: [
-          "Default parameters: def func(x, y=10):",
-          "If no second argument given, armor stays at 10",
-          'def defend(damage, armor=10):\n    return damage - armor\n\nprint(defend(50))\nprint(defend(50, 20))',
+          'for weapon in weapons: goes through each item in the weapons list.',
+          'Then print(weapon) inside the loop.',
+          'weapons = ["sword", "bow", "staff"]\nfor weapon in weapons:\n    print(weapon)',
         ],
-        xpReward: 35,
-        concept: "default parameters",
+        xpReward: 30,
+        concept: 'for loop through a list',
+        elementalDamage: 8,
       },
       {
-        id: "r4q4",
-        title: "Spell Chain",
-        enemy: { name: "Spell Thief", hp: 75, icon: "✨" },
-        story: "The Spell Thief steals single spells! Combine multiple functions to create an unbreakable chain.",
-        instructions: "Create double(n) that returns n * 2, and add_ten(n) that returns n + 10. Print add_ten(double(5)).",
-        starterCode: '# Create a spell chain!\n\n\n\n# Chain them together\n',
-        expectedOutput: "20",
-        validationType: "exact",
+        id: 'r4q5',
+        title: '🏆 BOSS: Infinite Loop Serpent',
+        enemy: { name: 'Infinite Loop Serpent', hp: 150, icon: '🐍', isBoss: true },
+        story: 'BOSS BATTLE! The Infinite Loop Serpent spins in circles forever! Show it that YOU control loops — print only the EVEN numbers from 1 to 10. Skip the odd ones!',
+        instructions: 'Use a for loop from 1 to 10. If the number is even (divisible by 2 with no leftover), print it.',
+        starterCode:
+          '# BOSS BATTLE! Print only even numbers 1-10\n' +
+          '# % is the "leftover" symbol. 4 % 2 = 0 (no leftover = even!)\n' +
+          '\n' +
+          '# Your loop:\n' +
+          'for n in range(1, 11):\n' +
+          '    # Check if n is even:\n' +
+          '    if n % 2 == 0:\n' +
+          '        # Print it!\n' +
+          '        \n',
+        expectedOutput: '2\n4\n6\n8\n10',
+        validationType: 'exact',
         hints: [
-          "You can pass the result of one function to another",
-          "double(5) returns 10, then add_ten(10) returns 20",
-          'def double(n):\n    return n * 2\n\ndef add_ten(n):\n    return n + 10\n\nprint(add_ten(double(5)))',
+          "n % 2 == 0 means \"n has no leftover when divided by 2\" — that's an even number!",
+          'Add print(n) inside the if block.',
+          'for n in range(1, 11):\n    if n % 2 == 0:\n        print(n)',
         ],
-        xpReward: 40,
-        concept: "function composition",
-      },
-      {
-        id: "r4q5",
-        title: "🏆 BOSS: The Recursion Dragon",
-        enemy: { name: "Recursion Dragon", hp: 200, icon: "🐉", isBoss: true },
-        story: "The Recursion Dragon! It can only be defeated by a function that calls itself. Calculate the factorial of 5 using a function!",
-        instructions: "Create a function factorial(n) that returns 1 if n <= 1, else returns n * factorial(n-1). Print factorial(5).",
-        starterCode: '# Defeat the Recursion Dragon!\n\n\n# Calculate 5! (5 factorial = 120)\n',
-        expectedOutput: "120",
-        validationType: "exact",
-        hints: [
-          "Recursion = a function that calls itself with a smaller input",
-          "Base case: if n <= 1, return 1. Otherwise: return n * factorial(n-1)",
-          'def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))',
-        ],
-        xpReward: 100,
-        concept: "recursion",
+        xpReward: 130,
+        concept: 'loops + conditionals + modulo',
+        elementalDamage: 20,
       },
     ],
     completion: [
-      { speaker: "Forge Master", portrait: "forgemaster", text: "You've mastered the Forge! You can now create powers of your own." },
-      { speaker: "Forge Master", portrait: "forgemaster", text: "The remaining regions await in the next update. But your foundation is SOLID." },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: "ZAPPPP! You defeated the Infinite Loop Serpent! You're as fast as lightning now!",
+      },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: "Loops are one of the most powerful tools in coding. Computers never get tired of repeating — that's their superpower!",
+      },
+      {
+        speaker: 'Storm Runner Bolt',
+        portrait: 'bolt',
+        text: 'Spark the Fox joins your crew for an XP boost! Now dive into the ocean — Tidecaller Shore is next!',
+      },
     ],
+    rewards: {
+      items: ['Thunder Gem', "Storm Runner's Boots", 'Lightning Bolt Badge'],
+      companionUnlock: 'spark',
+      titleUnlock: 'Lightning Looper',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 5: The String Sanctum (Module 5)
+  // REGION 5: Tidecaller Shore (Water)
+  // Element: Water   Biome: Ocean
+  // Python concept: lists (create, access, add, loop)
   // ═══════════════════════════════════════════════
   region5: {
     id: 5,
-    name: "The String Sanctum",
-    description: "An ancient library where text is power. Master string manipulation to decipher ancient scrolls.",
+    name: 'Tidecaller Shore',
+    description: 'A vast sparkling ocean full of sea monsters and sunken treasure! Learn to keep lots of things together in lists.',
     moduleId: 5,
-    icon: "📜",
-    color: "#06b6d4",
+    icon: '🏖️',
+    color: '#3b82f6',
     unlockLevel: 21,
+    element: 'Water',
+    biome: 'ocean',
     intro: [
-      { speaker: "Scribe Lyria", portrait: "scribe", text: "Welcome to the String Sanctum, where words hold power beyond imagination." },
-      { speaker: "Scribe Lyria", portrait: "scribe", text: "Here, we don't just write strings — we BEND them, SLICE them, and transform them." },
-      { speaker: "Scribe Lyria", portrait: "scribe", text: "Master the ancient art of string manipulation, and the scrolls will reveal their secrets." },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: "Ahoy! I'm Captain Wave, sailor of the digital seas! Welcome to Tidecaller Shore!",
+      },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: 'On my ship, I keep all my treasure in a LIST. A list is like a treasure chest with numbered compartments — it holds MANY things at once!',
+      },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: 'You write a list with square brackets: treasure = ["gold", "ruby", "map"]. Easy as pie! Let\'s sail!',
+      },
     ],
     quests: [
       {
-        id: "r5q1",
-        title: "Whisper to Shout",
-        enemy: { name: "Silent Echo", hp: 50, icon: "🔊" },
-        story: "The Silent Echo steals voices by lowercasing them! Restore the shout using .upper().",
-        instructions: 'Set text = "whisper". Use .upper() to convert it to uppercase and print the result.',
-        starterCode: '# Restore the shout!\n\ntext = "whisper"\n\n# Transform it\n',
-        expectedOutput: "WHISPER",
-        validationType: "exact",
+        id: 'r5q1',
+        title: 'Build the Treasure Chest',
+        enemy: { name: 'Soggy Seagull', hp: 35, icon: '🐦' },
+        story: 'The Soggy Seagull stole our treasure and scattered it! Gather it all back into one list so we know what we have.',
+        instructions: 'Create a list called treasure with: "gold", "ruby", "map". Then print treasure.',
+        starterCode:
+          '# A list holds many things at once!\n' +
+          '# treasure = ["thing1", "thing2", "thing3"]\n' +
+          '\n' +
+          '# Build your treasure list:\n' +
+          'treasure = \n' +
+          '\n' +
+          '# Print it:\n',
+        expectedOutput: "['gold', 'ruby', 'map']",
+        validationType: 'exact',
         hints: [
-          "String methods are called with a dot: string.method()",
-          '\"hello\".upper() becomes \"HELLO\"',
-          'text = "whisper"\nprint(text.upper())',
+          'Use square brackets: treasure = ["gold", "ruby", "map"]',
+          'Each item goes in quotes, separated by commas.',
+          'treasure = ["gold", "ruby", "map"]\nprint(treasure)',
+        ],
+        xpReward: 25,
+        concept: 'creating lists',
+        elementalDamage: 6,
+      },
+      {
+        id: 'r5q2',
+        title: 'First Item in the Chest',
+        enemy: { name: 'Clam Bandit', hp: 40, icon: '🦪' },
+        story: 'The Clam Bandit only wants the FIRST thing in your list! Give it what it wants before it takes everything.',
+        instructions: 'Create treasure = ["gold", "ruby", "map"]. Print only the first item using treasure[0].',
+        starterCode:
+          '# To get ONE thing from a list, use its position number!\n' +
+          '# Lists start counting at 0, not 1.\n' +
+          '# treasure[0] = first item, treasure[1] = second, etc.\n' +
+          '\n' +
+          'treasure = ["gold", "ruby", "map"]\n' +
+          '\n' +
+          '# Print just the first item:\n',
+        expectedOutput: 'gold',
+        validationType: 'exact',
+        hints: [
+          'treasure[0] gets the first item — lists start at 0!',
+          'Use print(treasure[0])',
+          'treasure = ["gold", "ruby", "map"]\nprint(treasure[0])',
+        ],
+        xpReward: 25,
+        concept: 'list indexing',
+        elementalDamage: 6,
+      },
+      {
+        id: 'r5q3',
+        title: 'Add to the Crew',
+        enemy: { name: 'Barnacle Beast', hp: 50, icon: '🐚' },
+        story: 'The Barnacle Beast is growing! Add a new crew member to your crew list to fight it off. Use .append() to add things to a list!',
+        instructions: 'Start with crew = ["Bolt", "Frost"]. Use .append() to add "Wave". Then print crew.',
+        starterCode:
+          '# .append() adds a new item to the END of a list\n' +
+          '# Like: my_list.append("new thing")\n' +
+          '\n' +
+          'crew = ["Bolt", "Frost"]\n' +
+          '\n' +
+          '# Add "Wave" to the crew:\n' +
+          '\n' +
+          '# Print the updated crew:\n',
+        expectedOutput: "['Bolt', 'Frost', 'Wave']",
+        validationType: 'exact',
+        hints: [
+          'crew.append("Wave") adds Wave to the end of the list.',
+          'Then print(crew) to show the whole list.',
+          'crew = ["Bolt", "Frost"]\ncrew.append("Wave")\nprint(crew)',
         ],
         xpReward: 30,
-        concept: "string methods .upper()",
+        concept: 'list .append()',
+        elementalDamage: 8,
       },
       {
-        id: "r5q2",
-        title: "Spell Fragment",
-        enemy: { name: "Fractured Rune", hp: 55, icon: "✂️" },
-        story: "A spell is broken into pieces! Use slicing to extract the magic word 'PYTHON' from a longer text.",
-        instructions: 'Set spell = "PYTHON IS MAGIC". Use slicing [0:6] to extract "PYTHON" and print it.',
-        starterCode: '# Extract the spell!\n\nspell = "PYTHON IS MAGIC"\n\n# Slice it\n',
-        expectedOutput: "PYTHON",
-        validationType: "exact",
+        id: 'r5q4',
+        title: 'Count the Fish',
+        enemy: { name: 'Counting Crab', hp: 60, icon: '🦀' },
+        story: 'The Counting Crab challenges you to count how many fish are in your net! Use len() to find how many items are in your list.',
+        instructions: 'Create fish = ["tuna", "salmon", "cod", "bass"]. Print how many fish using len(fish).',
+        starterCode:
+          '# len() counts how many things are in a list!\n' +
+          '# len(my_list) gives you the number.\n' +
+          '\n' +
+          'fish = ["tuna", "salmon", "cod", "bass"]\n' +
+          '\n' +
+          '# Print the count:\n',
+        expectedOutput: '4',
+        validationType: 'exact',
         hints: [
-          "Slicing with [start:end] extracts characters from position start to end-1",
-          "string[0:6] gives you the first 6 characters",
-          'spell = "PYTHON IS MAGIC"\nprint(spell[0:6])',
+          'len(fish) will give the number of items — 4 fish!',
+          'print(len(fish)) is all you need.',
+          'fish = ["tuna", "salmon", "cod", "bass"]\nprint(len(fish))',
         ],
         xpReward: 30,
-        concept: "string slicing",
+        concept: 'len() on lists',
+        elementalDamage: 8,
       },
       {
-        id: "r5q3",
-        title: "Find the Hidden Word",
-        enemy: { name: "Cryptic Sphinx", hp: 60, icon: "🔍" },
-        story: "The Sphinx hides the secret within a message. Find the position of 'dragon' in the text using .find().",
-        instructions: 'Set message = "beware the dragon within". Use .find("dragon") to find its position and print it.',
-        starterCode: '# Find the hidden word!\n\nmessage = "beware the dragon within"\n\n# Search for it\n',
-        expectedOutput: "11",
-        validationType: "exact",
+        id: 'r5q5',
+        title: '🏆 BOSS: Kraken of Collections',
+        enemy: { name: 'Kraken of Collections', hp: 160, icon: '🦑', isBoss: true },
+        story: "BOSS BATTLE! The mighty Kraken rises from the deep! It holds all your stolen items. Loop through the Kraken's loot and print every item to reclaim them!",
+        instructions: 'Create loot = ["anchor", "compass", "spyglass", "parrot"]. Use a for loop to print each item on its own line.',
+        starterCode:
+          '# BOSS BATTLE! Loop through the list!\n' +
+          '# for item in my_list: goes through EVERY item.\n' +
+          '\n' +
+          'loot = ["anchor", "compass", "spyglass", "parrot"]\n' +
+          '\n' +
+          '# Loop and print each item:\n',
+        expectedOutput: 'anchor\ncompass\nspyglass\nparrot',
+        validationType: 'exact',
         hints: [
-          'string.find(substring) returns the starting position of the substring',
-          '"hello world".find("world") returns 6',
-          'message = "beware the dragon within"\nprint(message.find("dragon"))',
+          'for item in loot: will go through each item in the list.',
+          'Then print(item) inside the loop.',
+          'loot = ["anchor", "compass", "spyglass", "parrot"]\nfor item in loot:\n    print(item)',
         ],
-        xpReward: 35,
-        concept: "string .find()",
-      },
-      {
-        id: "r5q4",
-        title: "Cleanse the Curse",
-        enemy: { name: "Curse Imp", hp: 65, icon: "💀" },
-        story: "A curse word has infected the ancient text! Use .replace() to heal it.",
-        instructions: 'Set cursed = "The blight spreads blight blight". Use .replace("blight", "light") and print the result.',
-        starterCode: '# Cleanse the curse!\n\ncursed = "The blight spreads blight blight"\n\n# Replace it\n',
-        expectedOutput: "The light spreads light light",
-        validationType: "exact",
-        hints: [
-          'string.replace(old, new) replaces all occurrences',
-          '"hello world".replace("world", "python") becomes "hello python"',
-          'cursed = "The blight spreads blight blight"\nprint(cursed.replace("blight", "light"))',
-        ],
-        xpReward: 35,
-        concept: "string .replace()",
-      },
-      {
-        id: "r5q5",
-        title: "🏆 BOSS: The Master Wordsmith",
-        enemy: { name: "Master Wordsmith", hp: 180, icon: "📖", isBoss: true },
-        story: "The Master Wordsmith tests your complete mastery of strings! Take a sentence, split it into words, and rejoin them with hyphens.",
-        instructions: 'Set sentence = "Python is the best". Use .split() to break it into words, then .join() to rejoin with \"-\" between them.',
-        starterCode: '# Defeat the Master Wordsmith!\n\nsentence = "Python is the best"\n\n# Split and rejoin\n',
-        expectedOutput: "Python-is-the-best",
-        validationType: "exact",
-        hints: [
-          'string.split() creates a list of words: "a b c".split() → ["a", "b", "c"]',
-          'separator.join(list) joins with separator: "-".join(["a", "b"]) → "a-b"',
-          'sentence = "Python is the best"\nwords = sentence.split()\nprint("-".join(words))',
-        ],
-        xpReward: 100,
-        concept: "string .split() & .join()",
+        xpReward: 130,
+        concept: 'looping through lists',
+        elementalDamage: 20,
       },
     ],
     completion: [
-      { speaker: "Scribe Lyria", portrait: "scribe", text: "Magnificent! You've unlocked the true power of strings." },
-      { speaker: "Scribe Lyria", portrait: "scribe", text: "Now, face the Error Swamps where dangers lurk in every line of code..." },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: "HOORAH! The Kraken is defeated! All our treasure is back where it belongs!",
+      },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: 'Lists are like treasure chests for your data — you can store lots of things, add more, and loop through all of them!',
+      },
+      {
+        speaker: 'Captain Wave',
+        portrait: 'wave',
+        text: "Coral the Turtle joins your party — she'll shield you from errors! Sail on to the Ancient Library!",
+      },
     ],
+    rewards: {
+      items: ['Pearl of the Deep', "Captain's Compass", 'Kraken Ink Bottle'],
+      companionUnlock: 'coral',
+      titleUnlock: 'Tidecaller',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 6: The Error Swamps (Module 6)
+  // REGION 6: Ancient Library (Earth)
+  // Element: Earth   Biome: Desert
+  // Python concept: functions (def, parameters, return)
   // ═══════════════════════════════════════════════
   region6: {
     id: 6,
-    name: "The Error Swamps",
-    description: "A treacherous bog where errors lurk in every shadow. Navigate safely with try/except.",
+    name: 'Ancient Library',
+    description: 'A massive sandstone library buried in the desert! The ancient scrolls hold the secret of FUNCTIONS — your own custom superpowers.',
     moduleId: 6,
-    icon: "🪨",
-    color: "#8b5cf6",
+    icon: '📚',
+    color: '#a3793a',
     unlockLevel: 26,
+    element: 'Earth',
+    biome: 'desert',
     intro: [
-      { speaker: "Swamp Guide Krynn", portrait: "guide", text: "The Error Swamps are treacherous. One wrong step, and your program crashes." },
-      { speaker: "Swamp Guide Krynn", portrait: "guide", text: "But don't fear! With try/except, you can CATCH errors before they destroy you." },
-      { speaker: "Swamp Guide Krynn", portrait: "guide", text: "Learn to handle errors with grace, and you'll survive the darkest depths." },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: 'Greetings, traveller. I am Sage Petra, keeper of the Ancient Library. I guard the most powerful secrets in all of coding.',
+      },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: 'A FUNCTION is like a superpower you create yourself. You define it once, give it a name, and use it as many times as you want!',
+      },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: 'Think of it as writing a spell in a spellbook. def greet(): is how you write the spell. greet() is how you cast it!',
+      },
     ],
     quests: [
       {
-        id: "r6q1",
-        title: "The First Pitfall",
-        enemy: { name: "Crash Goblin", hp: 55, icon: "💥" },
-        story: "A pitfall! Your code will crash if the user enters bad data. Use try/except to catch it!",
-        instructions: 'Wrap this in try/except: x = int("hello"). In except, print "That is not a number!". Call it.',
-        starterCode: '# Avoid the pitfall!\n\n# Wrap your code in try/except\n',
-        expectedOutput: "That is not a number!",
-        validationType: "exact",
+        id: 'r6q1',
+        title: 'Write Your First Spell',
+        enemy: { name: 'Dusty Dummy', hp: 40, icon: '🪆' },
+        story: 'The Dusty Dummy has forgotten all its spells! Help it by writing the simplest function — one that just says hello when you call it.',
+        instructions: 'Define a function called say_hello() that prints "Hello from a function!". Then call it.',
+        starterCode:
+          '# def starts a function (your custom superpower!)\n' +
+          '# The code inside runs when you CALL the function.\n' +
+          '\n' +
+          '# Step 1: Define (write) the function:\n' +
+          'def say_hello():\n' +
+          '    # Put what the function does here:\n' +
+          '    \n' +
+          '\n' +
+          '# Step 2: Call (use) the function:\n' +
+          'say_hello()\n',
+        expectedOutput: 'Hello from a function!',
+        validationType: 'exact',
         hints: [
-          "try block contains risky code, except block catches the error",
-          'try:\n    x = int("hello")\nexcept:\n    print("That is not a number!")',
-          'try:\n    x = int("hello")\nexcept:\n    print("That is not a number!")',
+          'Inside the function (indented), add: print("Hello from a function!")',
+          'The function already gets called at the bottom with say_hello()',
+          'def say_hello():\n    print("Hello from a function!")\n\nsay_hello()',
+        ],
+        xpReward: 30,
+        concept: 'defining and calling functions',
+        elementalDamage: 7,
+      },
+      {
+        id: 'r6q2',
+        title: 'Greet the Hero',
+        enemy: { name: 'Rude Scarecrow', hp: 45, icon: '🎃' },
+        story: "The Rude Scarecrow refuses to greet anyone by name! Show it how by making a function that takes a name and uses it!",
+        instructions: 'Define greet(name) that prints "Hello, " + name + "!". Call it with greet("Petra").',
+        starterCode:
+          '# Functions can take INPUT — we call these "parameters"\n' +
+          '# def greet(name): — name is the input!\n' +
+          '\n' +
+          '# Define the function:\n' +
+          'def greet(name):\n' +
+          '    # Use name inside a print:\n' +
+          '    \n' +
+          '\n' +
+          '# Call it:\n' +
+          'greet("Petra")\n',
+        expectedOutput: 'Hello, Petra!',
+        validationType: 'exact',
+        hints: [
+          'Inside the function: print("Hello, " + name + "!")',
+          'Or you can use an f-string: print(f"Hello, {name}!")',
+          'def greet(name):\n    print("Hello, " + name + "!")\n\ngreet("Petra")',
+        ],
+        xpReward: 30,
+        concept: 'function parameters',
+        elementalDamage: 7,
+      },
+      {
+        id: 'r6q3',
+        title: 'The Answer Machine',
+        enemy: { name: 'Quiz Skeleton', hp: 55, icon: '💀' },
+        story: 'The Quiz Skeleton asks maths questions but never gives answers! Build a function that RETURNS an answer — and print it.',
+        instructions: 'Define add(a, b) that returns a + b. Print add(12, 8).',
+        starterCode:
+          '# "return" sends the answer BACK to whoever called the function!\n' +
+          '# Like a calculator — you put in numbers, it gives back the answer.\n' +
+          '\n' +
+          '# Define the function:\n' +
+          'def add(a, b):\n' +
+          '    return \n' +
+          '\n' +
+          '# Print the result:\n' +
+          'print(add(12, 8))\n',
+        expectedOutput: '20',
+        validationType: 'exact',
+        hints: [
+          'return a + b sends the sum back.',
+          'The full function: def add(a, b): return a + b',
+          'def add(a, b):\n    return a + b\n\nprint(add(12, 8))',
         ],
         xpReward: 35,
-        concept: "try/except basics",
+        concept: 'return values',
+        elementalDamage: 9,
       },
       {
-        id: "r6q2",
-        title: "Type Trap",
-        enemy: { name: "Type Wraith", hp: 60, icon: "⚠️" },
-        story: "Different errors need different handling! Catch ValueError specifically for bad number conversions.",
-        instructions: 'Use try/except ValueError to catch int("abc"). Print "Cannot convert to integer" in except block.',
-        starterCode: '# Handle the type trap!\n\n# Catch ValueError specifically\n',
-        expectedOutput: "Cannot convert to integer",
-        validationType: "exact",
+        id: 'r6q4',
+        title: 'Double the Power',
+        enemy: { name: 'Mirror Mimic', hp: 65, icon: '🪞' },
+        story: 'The Mirror Mimic doubles everything it touches! Build a function that doubles any number — then use it twice in a row!',
+        instructions: 'Define double(n) that returns n * 2. Print double(5) and print double(double(3)) on separate lines.',
+        starterCode:
+          '# Functions can use OTHER functions!\n' +
+          '# double(double(3)) = double(6) = 12\n' +
+          '\n' +
+          '# Define the function:\n' +
+          'def double(n):\n' +
+          '    return \n' +
+          '\n' +
+          '# Test 1:\n' +
+          'print(double(5))\n' +
+          '\n' +
+          '# Test 2 (double of a double!):\n' +
+          'print(double(double(3)))\n',
+        expectedOutput: '10\n12',
+        validationType: 'exact',
         hints: [
-          "except ValueError: catches only that specific error type",
-          "Different errors have different names: ValueError, TypeError, ZeroDivisionError",
-          'try:\n    x = int("abc")\nexcept ValueError:\n    print("Cannot convert to integer")',
+          'return n * 2 doubles the number.',
+          'double(5) = 10. double(double(3)) = double(6) = 12.',
+          'def double(n):\n    return n * 2\n\nprint(double(5))\nprint(double(double(3)))',
         ],
         xpReward: 35,
-        concept: "specific error catching",
+        concept: 'using functions inside functions',
+        elementalDamage: 9,
       },
       {
-        id: "r6q3",
-        title: "Math Madness",
-        enemy: { name: "Division Demon", hp: 65, icon: "÷" },
-        story: "The Division Demon loves zero! Catch ZeroDivisionError when someone tries to divide by zero.",
-        instructions: 'Wrap in try/except: result = 10 / 0. In except ZeroDivisionError, print "Cannot divide by zero!".',
-        starterCode: '# Survive the Division Demon!\n\n# Catch ZeroDivisionError\n',
-        expectedOutput: "Cannot divide by zero!",
-        validationType: "exact",
+        id: 'r6q5',
+        title: '🏆 BOSS: Recursion Golem',
+        enemy: { name: 'Recursion Golem', hp: 170, icon: '🗿', isBoss: true },
+        story: 'BOSS BATTLE! The Recursion Golem rebuilds itself — it calls ITSELF to regenerate! Defeat it by writing a function that calls ITSELF to count down from 3 to 1!',
+        instructions: 'Define countdown(n) that: if n is 0, prints "Blast off!". Otherwise prints n and calls countdown(n - 1). Call countdown(3).',
+        starterCode:
+          '# BOSS BATTLE! A function that calls ITSELF is called recursion!\n' +
+          '# It keeps going until it hits the "base case" (the stopping point).\n' +
+          '\n' +
+          'def countdown(n):\n' +
+          '    if n == 0:\n' +
+          '        print("Blast off!")\n' +
+          '    else:\n' +
+          '        # Print n, then call countdown with a smaller number:\n' +
+          '        print(n)\n' +
+          '        # Call countdown again:\n' +
+          '        \n' +
+          '\n' +
+          'countdown(3)\n',
+        expectedOutput: '3\n2\n1\nBlast off!',
+        validationType: 'exact',
         hints: [
-          "ZeroDivisionError is raised when you divide by zero",
-          'except ZeroDivisionError: catches this specific error',
-          'try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print("Cannot divide by zero!")',
+          'Inside the else block, add: countdown(n - 1)',
+          'This makes the function call itself with a smaller number each time.',
+          'def countdown(n):\n    if n == 0:\n        print("Blast off!")\n    else:\n        print(n)\n        countdown(n - 1)\n\ncountdown(3)',
         ],
-        xpReward: 40,
-        concept: "ZeroDivisionError handling",
-      },
-      {
-        id: "r6q4",
-        title: "The Finally Sanctuary",
-        enemy: { name: "Forgotten Spirit", hp: 70, icon: "👻" },
-        story: "After battling errors, you need cleanup! Use finally to run code no matter what happens.",
-        instructions: 'In try, divide 10 by 2. In finally, print "Quest complete!". Print the result first.',
-        starterCode: '# Find the Finally Sanctuary!\n\n# Use finally for cleanup\n',
-        expectedOutput: "5.0\nQuest complete!",
-        validationType: "exact",
-        hints: [
-          "finally block runs AFTER try/except, whether error or not",
-          "Use finally for cleanup: closing files, resetting values, etc.",
-          'try:\n    result = 10 / 2\n    print(result)\nexcept:\n    print("Error")\nfinally:\n    print("Quest complete!")',
-        ],
-        xpReward: 40,
-        concept: "finally blocks",
-      },
-      {
-        id: "r6q5",
-        title: "🏆 BOSS: The Error Sentinel",
-        enemy: { name: "Error Sentinel", hp: 200, icon: "🛡️", isBoss: true },
-        story: "The Error Sentinel guards the exit! Build a robust function that handles multiple error types and always completes safely.",
-        instructions: 'Create a function safe_divide(a, b) that tries to return a/b, catches ZeroDivisionError (print "Cannot divide by zero"), catches TypeError (print "Need numbers only"), and uses finally to print "Operation attempted". Call it with safe_divide(10, 0).',
-        starterCode: '# Defeat the Error Sentinel!\n\n# Build a robust error-handling function\n\n# Test it\nprint(safe_divide(10, 0))\n',
-        expectedOutput: "Cannot divide by zero\nOperation attempted\nNone",
-        validationType: "exact",
-        hints: [
-          "Stack multiple except blocks: except ValueError, except TypeError, etc.",
-          "finally always runs after try/except",
-          'def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        print("Cannot divide by zero")\n    except TypeError:\n        print("Need numbers only")\n    finally:\n        print("Operation attempted")\n\nprint(safe_divide(10, 0))',
-        ],
-        xpReward: 110,
-        concept: "multi-error handling",
+        xpReward: 140,
+        concept: 'recursion (intro)',
+        elementalDamage: 22,
       },
     ],
     completion: [
-      { speaker: "Swamp Guide Krynn", portrait: "guide", text: "You've mastered the treacherous swamps! Your code will never crash again." },
-      { speaker: "Swamp Guide Krynn", portrait: "guide", text: "Ahead lies the Module Mountains, where the true power of Python awaits..." },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: 'Extraordinary! The Recursion Golem is shattered! You have learned the deepest secret of the library!',
+      },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: 'Functions are the heart of all programs. Every app, every game, every website is built from functions just like the ones you wrote!',
+      },
+      {
+        speaker: 'Sage Petra',
+        portrait: 'petra',
+        text: "Terra the Bear joins your quest for stronger attacks! On to the Shadow Jungle — where data gets a LABEL!",
+      },
     ],
+    rewards: {
+      items: ['Stone Tablet', "Sage's Quill", 'Ancient Scroll of Functions'],
+      companionUnlock: 'terra',
+      titleUnlock: 'Function Forger',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 7: The Module Mountains (Module 7)
+  // REGION 7: Shadow Jungle (Nature)
+  // Element: Nature   Biome: Jungle
+  // Python concept: dictionaries (key-value pairs)
   // ═══════════════════════════════════════════════
   region7: {
     id: 7,
-    name: "The Module Mountains",
-    description: "Towering peaks where the wisdom of Python's standard library awaits. Climb high and unlock new powers.",
+    name: 'Shadow Jungle',
+    description: 'A dark, tangled jungle where every creature has a label and every plant has a secret name. Learn dictionaries to survive!',
     moduleId: 7,
-    icon: "⛰️",
-    color: "#f97316",
+    icon: '🌴',
+    color: '#22c55e',
     unlockLevel: 31,
+    element: 'Nature',
+    biome: 'jungle',
     intro: [
-      { speaker: "Mountain Sage", portrait: "sage", text: "You've climbed far, brave coder. But now you face the Module Mountains." },
-      { speaker: "Mountain Sage", portrait: "sage", text: "These peaks contain the greatest tools ever crafted: the Python Standard Library." },
-      { speaker: "Mountain Sage", portrait: "sage", text: "With import, you harness the power of giants. Learn to wield these tools." },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: "Psst! Over here! I'm Ranger Verde. In this jungle, you need to LABEL everything or you'll get lost!",
+      },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: 'We use DICTIONARIES for that! A dictionary is like a notebook where you write a label (key) and what it means (value). Like: "hp": 100',
+      },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: 'monster = {"name": "Vine Beast", "hp": 80, "power": 15} — see? Each thing has a label. Let\'s explore!',
+      },
     ],
     quests: [
       {
-        id: "r7q1",
-        title: "The Math Temple",
-        enemy: { name: "Calculator Wraith", hp: 60, icon: "📐" },
-        story: "The Calculator Wraith has stolen precision! Use the math module to calculate the square root of 16.",
-        instructions: "Import math. Use math.sqrt(16) and print the result.",
-        starterCode: '# Climb the Math Temple!\n\n# Import and use math\n',
-        expectedOutput: "4.0",
-        validationType: "exact",
+        id: 'r7q1',
+        title: 'Label the Creature',
+        enemy: { name: 'Confused Chameleon', hp: 40, icon: '🦎' },
+        story: "The Confused Chameleon has forgotten what it is! Build a dictionary that describes it so it knows its own identity.",
+        instructions: 'Create creature = {"name": "Chameleon", "color": "green"}. Print creature["name"].',
+        starterCode:
+          '# A dictionary uses {} curly brackets\n' +
+          '# Each entry is: "label": value\n' +
+          '# creature = {"name": "Chameleon", "color": "green"}\n' +
+          '\n' +
+          '# Create the dictionary:\n' +
+          'creature = \n' +
+          '\n' +
+          '# Print just the name:\n',
+        expectedOutput: 'Chameleon',
+        validationType: 'exact',
         hints: [
-          "import math brings in the math module",
-          "math.sqrt() calculates square roots",
-          'import math\nprint(math.sqrt(16))',
+          'creature = {"name": "Chameleon", "color": "green"}',
+          'To get the name: creature["name"] — use the label in square brackets.',
+          'creature = {"name": "Chameleon", "color": "green"}\nprint(creature["name"])',
+        ],
+        xpReward: 30,
+        concept: 'creating dictionaries',
+        elementalDamage: 7,
+      },
+      {
+        id: 'r7q2',
+        title: 'Check the Monster Stats',
+        enemy: { name: 'Stat Snatcher', hp: 45, icon: '📊' },
+        story: 'The Stat Snatcher scrambled all the monster stats! Rebuild the monster card and look up its hp.',
+        instructions: 'Create monster = {"name": "Vine Beast", "hp": 80, "attack": 15}. Print monster["hp"].',
+        starterCode:
+          '# Dictionaries can hold numbers too!\n' +
+          '# You look up values using their key (label).\n' +
+          '\n' +
+          '# Build the monster card:\n' +
+          'monster = {"name": "Vine Beast", "hp": 80, "attack": 15}\n' +
+          '\n' +
+          '# Look up and print the hp:\n',
+        expectedOutput: '80',
+        validationType: 'exact',
+        hints: [
+          'monster["hp"] gets the hp value from the dictionary.',
+          'print(monster["hp"]) will show 80.',
+          'monster = {"name": "Vine Beast", "hp": 80, "attack": 15}\nprint(monster["hp"])',
+        ],
+        xpReward: 30,
+        concept: 'accessing dictionary values',
+        elementalDamage: 7,
+      },
+      {
+        id: 'r7q3',
+        title: 'Add a New Label',
+        enemy: { name: 'Label Leech', hp: 55, icon: '🪱' },
+        story: 'The Label Leech is eating dictionary entries! Quickly add a new entry to the dictionary before more get eaten!',
+        instructions: 'Start with hero = {"name": "Verde", "level": 5}. Add "weapon": "vine whip" to it. Print hero["weapon"].',
+        starterCode:
+          '# You can add new entries to a dictionary!\n' +
+          '# my_dict["new_key"] = new_value\n' +
+          '\n' +
+          'hero = {"name": "Verde", "level": 5}\n' +
+          '\n' +
+          '# Add the weapon:\n' +
+          '\n' +
+          '# Print the weapon:\n',
+        expectedOutput: 'vine whip',
+        validationType: 'exact',
+        hints: [
+          'hero["weapon"] = "vine whip" adds a new entry.',
+          'Then print(hero["weapon"]) to show it.',
+          'hero = {"name": "Verde", "level": 5}\nhero["weapon"] = "vine whip"\nprint(hero["weapon"])',
         ],
         xpReward: 35,
-        concept: "import math",
+        concept: 'adding to dictionaries',
+        elementalDamage: 9,
       },
       {
-        id: "r7q2",
-        title: "Random Riddle",
-        enemy: { name: "Chaos Sphinx", hp: 65, icon: "🎲" },
-        story: "The Chaos Sphinx asks: pick a random number between 1 and 10 to pass its riddle!",
-        instructions: "Import random. Use random.randint(1, 10) and print a random number.",
-        starterCode: '# Solve the Random Riddle!\n\n# Import and use random\n',
-        expectedOutput: "[a random number between 1 and 10]",
-        validationType: "exact",
+        id: 'r7q4',
+        title: 'Jungle Roll Call',
+        enemy: { name: 'Roll Call Parrot', hp: 65, icon: '🦜' },
+        story: 'The Roll Call Parrot wants to hear the name of every jungle creature! Loop through the dictionary and print each key.',
+        instructions: 'Create jungle = {"tiger": "big", "frog": "small", "snake": "long"}. Loop through jungle and print each key.',
+        starterCode:
+          '# for key in my_dict: loops through all the labels (keys)!\n' +
+          '\n' +
+          'jungle = {"tiger": "big", "frog": "small", "snake": "long"}\n' +
+          '\n' +
+          '# Loop and print each animal name:\n',
+        expectedOutput: 'tiger\nfrog\nsnake',
+        validationType: 'exact',
         hints: [
-          "import random brings in random functions",
-          "random.randint(a, b) picks a random integer between a and b (inclusive)",
-          'import random\nprint(random.randint(1, 10))',
+          'for animal in jungle: gives you each key (label).',
+          'Then print(animal) inside the loop.',
+          'jungle = {"tiger": "big", "frog": "small", "snake": "long"}\nfor animal in jungle:\n    print(animal)',
         ],
         xpReward: 35,
-        concept: "import random",
+        concept: 'looping through dictionary keys',
+        elementalDamage: 9,
       },
       {
-        id: "r7q3",
-        title: "The Choosing Spell",
-        enemy: { name: "Decision Imp", hp: 70, icon: "🔮" },
-        story: "Must pick from a list of weapons! Use random.choice() to randomly select one.",
-        instructions: 'Create weapons = ["sword", "bow", "staff"]. Use random.choice(weapons) and print it.',
-        starterCode: '# Cast the Choosing Spell!\n\nimport random\n\nweapons = ["sword", "bow", "staff"]\n\n# Choose one randomly\n',
-        expectedOutput: "[one of: sword, bow, or staff]",
-        validationType: "exact",
+        id: 'r7q5',
+        title: '🏆 BOSS: Data Hydra',
+        enemy: { name: 'Data Hydra', hp: 180, icon: '🐉', isBoss: true },
+        story: 'BOSS BATTLE! The Data Hydra has seven heads — each head is a creature with a size! Loop through the dictionary and print BOTH the name AND the size together!',
+        instructions: 'Create creatures = {"wolf": "large", "bat": "tiny", "bear": "huge"}. Loop through it using .items() and print "wolf is large" format for each one.',
+        starterCode:
+          '# .items() gives you BOTH the key AND the value at the same time!\n' +
+          '# for name, size in my_dict.items():\n' +
+          '\n' +
+          'creatures = {"wolf": "large", "bat": "tiny", "bear": "huge"}\n' +
+          '\n' +
+          '# Loop and print both key and value:\n',
+        expectedOutput: 'wolf is large\nbat is tiny\nbear is huge',
+        validationType: 'exact',
         hints: [
-          "random.choice(list) picks a random item from a list",
-          'weapons = ["sword", "bow", "staff"]\nprint(random.choice(weapons))',
-          'import random\nweapons = ["sword", "bow", "staff"]\nprint(random.choice(weapons))',
+          'for name, size in creatures.items(): gives both the key and value each loop.',
+          'Then print(name + " is " + size) or use an f-string.',
+          'creatures = {"wolf": "large", "bat": "tiny", "bear": "huge"}\nfor name, size in creatures.items():\n    print(name + " is " + size)',
         ],
-        xpReward: 35,
-        concept: "random.choice()",
-      },
-      {
-        id: "r7q4",
-        title: "Time's Arrow",
-        enemy: { name: "Temporal Guardian", hp: 75, icon: "⏰" },
-        story: "The Temporal Guardian tests your knowledge of time! Get the current year using datetime.",
-        instructions: "Import datetime. Use datetime.datetime.now().year and print the year.",
-        starterCode: '# Face Time\'s Arrow!\n\n# Import and get the current year\n',
-        expectedOutput: "2026",
-        validationType: "exact",
-        hints: [
-          "import datetime to work with dates and times",
-          "datetime.datetime.now() gives the current date and time",
-          "datetime.datetime.now().year extracts just the year",
-          'import datetime\nprint(datetime.datetime.now().year)',
-        ],
-        xpReward: 40,
-        concept: "datetime module",
-      },
-      {
-        id: "r7q5",
-        title: "🏆 BOSS: The Library Keeper",
-        enemy: { name: "Library Keeper", hp: 220, icon: "📚", isBoss: true },
-        story: "The Library Keeper is the guardian of all module wisdom. Use math, random, and datetime together to pass the ultimate test!",
-        instructions: 'Import math, random, datetime. Calculate: math.sqrt(25), pick random.choice([2, 4, 6]), get datetime.datetime.now().year. Print all three results on separate lines.',
-        starterCode: '# Defeat the Library Keeper!\n\n# Import multiple modules\n\n# Use math\n\n# Use random\n\n# Use datetime\n',
-        expectedOutput: "5.0\n[2, 4, or 6]\n2026",
-        validationType: "exact",
-        hints: [
-          "You can import multiple modules at the top",
-          "math.sqrt(25) = 5.0",
-          'random.choice([2, 4, 6]) picks one of those numbers',
-          'datetime.datetime.now().year gives 2026',
-          'import math\nimport random\nimport datetime\n\nprint(math.sqrt(25))\nprint(random.choice([2, 4, 6]))\nprint(datetime.datetime.now().year)',
-        ],
-        xpReward: 120,
-        concept: "multiple modules",
+        xpReward: 140,
+        concept: 'looping through key-value pairs',
+        elementalDamage: 22,
       },
     ],
     completion: [
-      { speaker: "Mountain Sage", portrait: "sage", text: "You've summited the Module Mountains! The library is now your tool." },
-      { speaker: "Mountain Sage", portrait: "sage", text: "One final challenge remains: The Tower of Mastery, where everything converges..." },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: "YES! The Data Hydra is defeated! The jungle is safe! You're an incredible coder!",
+      },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: 'Dictionaries let you label everything. Real programs use dictionaries for user profiles, game stats, weather data — everything!',
+      },
+      {
+        speaker: 'Ranger Verde',
+        portrait: 'verde',
+        text: "Fern the Cat is yours now — she'll give auto-hints when you're stuck. One final region remains: the VOID CITADEL!",
+      },
     ],
+    rewards: {
+      items: ['Jungle Vine', "Ranger's Map", 'Nature Totem'],
+      companionUnlock: 'fern',
+      titleUnlock: 'Data Ranger',
+    },
   },
 
   // ═══════════════════════════════════════════════
-  // REGION 8: The Tower of Mastery (Module 8)
+  // REGION 8: Void Citadel (Void)
+  // Element: Void   Biome: Cosmic/Void
+  // Python concept: combining everything — final challenges
   // ═══════════════════════════════════════════════
   region8: {
     id: 8,
-    name: "The Tower of Mastery",
-    description: "The final challenge. Here, advanced techniques push your skills to the limit. Prove you are a true Python master.",
+    name: 'Void Citadel',
+    description: 'A floating fortress at the edge of reality! Only a true Python master can combine ALL their skills to defeat the Final Code Dragon!',
     moduleId: 8,
-    icon: "🏰",
-    color: "#ec4899",
+    icon: '🏰',
+    color: '#a855f7',
     unlockLevel: 36,
+    element: 'Void',
+    biome: 'void',
     intro: [
-      { speaker: "Archmage Cipher", portrait: "archmage", text: "Welcome to the Tower of Mastery, where only the greatest heroes dare climb." },
-      { speaker: "Archmage Cipher", portrait: "archmage", text: "Here, we teach the advanced arts: list comprehensions, lambda functions, and functional programming." },
-      { speaker: "Archmage Cipher", portrait: "archmage", text: "These are the tools of true Python masters. Prove yourself worthy." },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'So... you have come this far. I am Archmage Cipher, master of the Void Citadel. Very few reach this place.',
+      },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'Here, you will face the ultimate test. Not just one skill — but ALL of them, combined. print, variables, if/else, loops, lists, functions, dictionaries.',
+      },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'The Final Code Dragon awaits at the top. Are you ready, young master? Then let us begin the final gauntlet!',
+      },
     ],
     quests: [
       {
-        id: "r8q1",
-        title: "The Comprehension Spell",
-        enemy: { name: "Loop Specter", hp: 70, icon: "✨" },
-        story: "Double every number in a list, but do it elegantly with list comprehension!",
-        instructions: "Use a list comprehension to create a new list where each number from [1, 2, 3, 4, 5] is doubled: [n * 2 for n in ...]",
-        starterCode: '# Cast the Comprehension Spell!\n\n# Use list comprehension\nresult = \n\nprint(result)\n',
-        expectedOutput: "[2, 4, 6, 8, 10]",
-        validationType: "exact",
+        id: 'r8q1',
+        title: 'The Variable Vault',
+        enemy: { name: 'Memory Phantom', hp: 60, icon: '👻' },
+        story: 'The Memory Phantom scrambles all your stored knowledge! Prove you remember variables AND f-strings by building a hero card from scratch.',
+        instructions: 'Create: name = "Cipher Knight", hp = 150, element = "Void". Print: "Cipher Knight | HP: 150 | Element: Void" using an f-string.',
+        starterCode:
+          '# Mix everything you know!\n' +
+          '# Variables + f-strings together.\n' +
+          '\n' +
+          'name = "Cipher Knight"\n' +
+          'hp = 150\n' +
+          'element = "Void"\n' +
+          '\n' +
+          '# Print the hero card:\n',
+        expectedOutput: 'Cipher Knight | HP: 150 | Element: Void',
+        validationType: 'exact',
         hints: [
-          "List comprehension: [expression for item in list]",
-          "[n * 2 for n in [1, 2, 3, 4, 5]]",
-          'result = [n * 2 for n in [1, 2, 3, 4, 5]]\nprint(result)',
+          'Use an f-string with all three variables.',
+          'f"{name} | HP: {hp} | Element: {element}"',
+          'name = "Cipher Knight"\nhp = 150\nelement = "Void"\nprint(f"{name} | HP: {hp} | Element: {element}")',
+        ],
+        xpReward: 35,
+        concept: 'variables + f-strings review',
+        elementalDamage: 10,
+      },
+      {
+        id: 'r8q2',
+        title: 'The Decision Tower',
+        enemy: { name: 'Binary Wraith', hp: 70, icon: '💻' },
+        story: "The Binary Wraith only thinks in 0s and 1s! Show it you can make smart decisions — check a player's score and give the right rank.",
+        instructions: 'Set score = 85. If >= 90 print "S Rank!". Elif >= 70 print "A Rank!". Elif >= 50 print "B Rank!". Else print "Try again!".',
+        starterCode:
+          '# Use if/elif/else to check score ranges!\n' +
+          '\n' +
+          'score = 85\n' +
+          '\n' +
+          '# Write your if/elif/else:\n',
+        expectedOutput: 'A Rank!',
+        validationType: 'exact',
+        hints: [
+          '85 is >= 70 but NOT >= 90, so the elif >= 70 branch runs.',
+          'That means "A Rank!" should print.',
+          'score = 85\nif score >= 90:\n    print("S Rank!")\nelif score >= 70:\n    print("A Rank!")\nelif score >= 50:\n    print("B Rank!")\nelse:\n    print("Try again!")',
+        ],
+        xpReward: 35,
+        concept: 'if/elif/else review',
+        elementalDamage: 10,
+      },
+      {
+        id: 'r8q3',
+        title: 'The Loop Labyrinth',
+        enemy: { name: 'Maze Minotaur', hp: 80, icon: '🐂' },
+        story: 'The Maze Minotaur is trapped in an endless loop! Escape by showing you can loop through a list and do something with each item!',
+        instructions: 'Create spells = ["fireball", "ice spike", "thunderbolt"]. Loop through and print "Casting: " + each spell name.',
+        starterCode:
+          '# Loop through a list and build a message each time!\n' +
+          '\n' +
+          'spells = ["fireball", "ice spike", "thunderbolt"]\n' +
+          '\n' +
+          '# Your loop:\n',
+        expectedOutput: 'Casting: fireball\nCasting: ice spike\nCasting: thunderbolt',
+        validationType: 'exact',
+        hints: [
+          'for spell in spells: goes through each spell.',
+          'print("Casting: " + spell) builds the message.',
+          'spells = ["fireball", "ice spike", "thunderbolt"]\nfor spell in spells:\n    print("Casting: " + spell)',
         ],
         xpReward: 40,
-        concept: "list comprehensions",
+        concept: 'loops + lists + string building review',
+        elementalDamage: 12,
       },
       {
-        id: "r8q2",
-        title: "The Lambda Blade",
-        enemy: { name: "Anonymous Phantom", hp: 75, icon: "⚡" },
-        story: "A quick, nameless function — a lambda — can defeat this phantom! Use it to add 10 to 5.",
-        instructions: "Create a lambda: add_ten = lambda x: x + 10. Call it with 5 and print the result.",
-        starterCode: '# Forge the Lambda Blade!\n\n# Create a lambda function\nadd_ten = \n\n# Use it\nprint(add_ten(5))\n',
-        expectedOutput: "15",
-        validationType: "exact",
+        id: 'r8q4',
+        title: 'The Function Fortress',
+        enemy: { name: 'Gate Sentinel', hp: 90, icon: '🛡️' },
+        story: 'The Gate Sentinel only opens to those who can create AND use a function that works with a dictionary! Prove your worth!',
+        instructions: 'Define get_power(hero_dict) that returns hero_dict["attack"] * 2. Create hero = {"name": "Nova", "attack": 25}. Print get_power(hero).',
+        starterCode:
+          '# A function that takes a dictionary as input!\n' +
+          '# Functions can take ANY kind of value — even whole dictionaries.\n' +
+          '\n' +
+          '# Define the function:\n' +
+          'def get_power(hero_dict):\n' +
+          '    return \n' +
+          '\n' +
+          '# Create the hero:\n' +
+          'hero = {"name": "Nova", "attack": 25}\n' +
+          '\n' +
+          '# Call the function:\n' +
+          'print(get_power(hero))\n',
+        expectedOutput: '50',
+        validationType: 'exact',
         hints: [
-          "lambda is a tiny anonymous function: lambda x: x + 10",
-          "Call it like any function: add_ten(5)",
-          'add_ten = lambda x: x + 10\nprint(add_ten(5))',
+          'hero_dict["attack"] gets the attack value (25). Multiply by 2 = 50.',
+          'return hero_dict["attack"] * 2',
+          'def get_power(hero_dict):\n    return hero_dict["attack"] * 2\n\nhero = {"name": "Nova", "attack": 25}\nprint(get_power(hero))',
         ],
         xpReward: 40,
-        concept: "lambda functions",
+        concept: 'functions + dictionaries review',
+        elementalDamage: 12,
       },
       {
-        id: "r8q3",
-        title: "The Map Quest",
-        enemy: { name: "Transformation Titan", hp: 80, icon: "🎯" },
-        story: "Use map() to apply a function to every element in a list! Square each number in [1, 2, 3, 4].",
-        instructions: "Use map(lambda x: x**2, [1, 2, 3, 4]) to square each number. Convert to list and print.",
-        starterCode: '# Complete the Map Quest!\n\n# Use map with lambda\nresult = list(map(lambda x: x**2, [1, 2, 3, 4]))\n\nprint(result)\n',
-        expectedOutput: "[1, 4, 9, 16]",
-        validationType: "exact",
+        id: 'r8q5',
+        title: '🏆 FINAL BOSS: Code Dragon',
+        enemy: { name: 'Final Code Dragon', hp: 300, icon: '🐉', isBoss: true },
+        story: 'THE FINAL BOSS! The Code Dragon combines ALL the dark powers! To defeat it, you must use EVERYTHING: a function, a loop, a list, and an if/else — all at once. This is your destiny, hero!',
+        instructions:
+          'Define check_power(spells) that loops through the spells list. ' +
+          'For each spell, if the spell starts with "fire" print "[spell]: FIRE DAMAGE!". ' +
+          'Otherwise print "[spell]: Normal hit." ' +
+          'Call check_power(["fireball", "ice beam", "fire storm", "wind slash"]).',
+        starterCode:
+          '# FINAL BOSS BATTLE!\n' +
+          '# Use a function + loop + list + if/else all together!\n' +
+          '\n' +
+          '# Define your function:\n' +
+          'def check_power(spells):\n' +
+          '    for spell in spells:\n' +
+          '        if spell.startswith("fire"):\n' +
+          '            # Print: spell + ": FIRE DAMAGE!"\n' +
+          '            \n' +
+          '        else:\n' +
+          '            # Print: spell + ": Normal hit."\n' +
+          '            \n' +
+          '\n' +
+          '# Call your function:\n' +
+          'check_power(["fireball", "ice beam", "fire storm", "wind slash"])\n',
+        expectedOutput: 'fireball: FIRE DAMAGE!\nice beam: Normal hit.\nfire storm: FIRE DAMAGE!\nwind slash: Normal hit.',
+        validationType: 'exact',
         hints: [
-          "map(function, list) applies function to every item",
-          "lambda x: x**2 is a function that squares x",
-          'result = list(map(lambda x: x**2, [1, 2, 3, 4]))\nprint(result)',
-        ],
-        xpReward: 45,
-        concept: "map() function",
-      },
-      {
-        id: "r8q4",
-        title: "The Filter Fortress",
-        enemy: { name: "Filter Golem", hp: 85, icon: "🔐" },
-        story: "Keep only the even numbers! Use filter() to remove the odd ones from [1, 2, 3, 4, 5, 6].",
-        instructions: "Use filter(lambda x: x % 2 == 0, [1, 2, 3, 4, 5, 6]) to keep only evens. Convert to list and print.",
-        starterCode: '# Defend the Filter Fortress!\n\n# Use filter with lambda\nresult = list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4, 5, 6]))\n\nprint(result)\n',
-        expectedOutput: "[2, 4, 6]",
-        validationType: "exact",
-        hints: [
-          "filter(function, list) keeps only items where function returns True",
-          "lambda x: x % 2 == 0 returns True if x is even",
-          'result = list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4, 5, 6]))\nprint(result)',
-        ],
-        xpReward: 45,
-        concept: "filter() function",
-      },
-      {
-        id: "r8q5",
-        title: "🏆 BOSS: The Final Code Dragon",
-        enemy: { name: "Final Code Dragon", hp: 300, icon: "🐉", isBoss: true },
-        story: "The Final Code Dragon tests EVERYTHING you've learned! Create a program that: takes a list of numbers, filters to keep only those > 5, squares each one, and prints the result as a string joined with commas.",
-        instructions: 'numbers = [2, 5, 8, 3, 10, 4]. Filter > 5, square them, join with ", " and print. Use list comprehension and/or filter/map together.',
-        starterCode: '# Defeat the Final Code Dragon!\n\nnumbers = [2, 5, 8, 3, 10, 4]\n\n# Filter, transform, and format\n\n',
-        expectedOutput: "64, 100",
-        validationType: "exact",
-        hints: [
-          "First filter: keep only n > 5 → [8, 10]",
-          "Then square: [64, 100]",
-          'Convert to strings and join: "64, 100"',
-          'numbers = [2, 5, 8, 3, 10, 4]\nfiltered = [n for n in numbers if n > 5]\nsquared = [n**2 for n in filtered]\nresult = ", ".join([str(n) for n in squared])\nprint(result)',
+          'Inside if: print(spell + ": FIRE DAMAGE!") and inside else: print(spell + ": Normal hit.")',
+          '.startswith("fire") checks if the word begins with "fire" — fireball and fire storm both do!',
+          'def check_power(spells):\n    for spell in spells:\n        if spell.startswith("fire"):\n            print(spell + ": FIRE DAMAGE!")\n        else:\n            print(spell + ": Normal hit.")\n\ncheck_power(["fireball", "ice beam", "fire storm", "wind slash"])',
         ],
         xpReward: 150,
-        concept: "mastery synthesis",
+        concept: 'mastery — all concepts combined',
+        elementalDamage: 30,
       },
     ],
     completion: [
-      { speaker: "Archmage Cipher", portrait: "archmage", text: "You have conquered the Tower of Mastery. You are no longer a student — you are a PYTHON MASTER." },
-      { speaker: "Archmage Cipher", portrait: "archmage", text: "The path of code stretches before you. Go forth and create wonders. Your adventure is just beginning..." },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'INCREDIBLE. The Final Code Dragon has fallen. You... you have truly done it.',
+      },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'You have mastered print(), variables, if/else, loops, lists, functions, and dictionaries. You are no longer a beginner — you are a PYTHON CODER.',
+      },
+      {
+        speaker: 'Archmage Cipher',
+        portrait: 'cipher',
+        text: 'Nova the Dragon is yours. With all bonuses unlocked, you are unstoppable. The real world of coding awaits you beyond this citadel. Go — and build amazing things!',
+      },
     ],
+    rewards: {
+      items: ['Void Crystal', "Archmage's Staff", 'Final Dragon Scale', "Master Coder's Crown"],
+      companionUnlock: 'nova',
+      titleUnlock: 'Python Master',
+    },
   },
 };
 
