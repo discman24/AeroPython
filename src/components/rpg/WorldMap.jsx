@@ -25,7 +25,7 @@ function ElementParticles({ element, count = 6 }) {
       {Array.from({ length: count }, (_, i) => (
         <span
           key={i}
-          className="absolute pointer-events-none text-xs animate-ping select-none"
+          className="absolute pointer-events-none text-sm animate-ping select-none"
           style={{
             color: el.color,
             opacity: 0.5,
@@ -42,7 +42,7 @@ function ElementParticles({ element, count = 6 }) {
   );
 }
 
-function ProgressRing({ percent, color, size = 48 }) {
+function ProgressRing({ percent, color, size = 64 }) {
   const radius = (size - 6) / 2;
   const circ = 2 * Math.PI * radius;
   const offset = circ - (percent / 100) * circ;
@@ -74,11 +74,11 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
+    <div className="relative w-full rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl" style={{ overflow: 'clip' }}>
       {/* Map background */}
-      <div className="relative w-full" style={{ paddingBottom: '52%', minHeight: '360px' }}>
+      <div className="relative w-full" style={{ paddingBottom: '52%', minHeight: '400px' }}>
         {/* Layered background */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden">
           {/* Base gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-950" />
 
@@ -135,8 +135,10 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
               />
             )}
           </svg>
+        </div>
 
-          {/* Region nodes */}
+        {/* Region nodes — sits above background, allows label overflow */}
+        <div className="absolute inset-0" style={{ overflow: 'visible' }}>
           {regions.map((region, index) => {
             const pos = regionPositions[index];
             if (!pos) return null;
@@ -152,13 +154,13 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
             const questsDoneInRegion = regionQuests.filter(q => completedQuests?.includes(q.id)).length;
             const progressPct = regionQuests.length > 0 ? (questsDoneInRegion / regionQuests.length) * 100 : 0;
 
-            const nodeSize = 52;
+            const nodeSize = 64;
 
             return (
               <div
                 key={region.id}
                 className="absolute"
-                style={{ top: pos.top, left: pos.left, transform: 'translate(-50%, -50%)' }}
+                style={{ top: pos.top, left: pos.left, transform: 'translate(-50%, -50%)', zIndex: isHovered ? 20 : 10 }}
               >
                 {/* Floating label */}
                 <div
@@ -169,21 +171,21 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
                   `}
                 >
                   <div
-                    className={`text-sm md:text-sm font-black uppercase tracking-wider px-2 py-0.5 rounded-full`}
+                    className="text-base md:text-lg font-black uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={isActive ? { color: el.color, backgroundColor: el.bg } : { color: '#475569' }}
                   >
                     {region.name}
                   </div>
                   {isLocked && (
-                    <div className="text-xs text-slate-700 mt-0.5 font-bold">AR {region.unlockLevel} req.</div>
+                    <div className="text-sm text-slate-700 mt-0.5 font-bold">AR {region.unlockLevel} req.</div>
                   )}
                   {isActive && !isCompleted && regionQuests.length > 0 && (
-                    <div className="text-xs mt-0.5 font-bold" style={{ color: el.color }}>
+                    <div className="text-sm mt-0.5 font-bold" style={{ color: el.color }}>
                       {questsDoneInRegion}/{regionQuests.length} quests
                     </div>
                   )}
                   {isCompleted && (
-                    <div className="text-xs text-emerald-400 mt-0.5 font-bold">★ Complete</div>
+                    <div className="text-sm text-emerald-400 mt-0.5 font-bold">★ Complete</div>
                   )}
                 </div>
 
@@ -196,7 +198,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
                   className={`relative flex items-center justify-center transition-all duration-300 ${
                     isLocked ? 'cursor-not-allowed opacity-35' : 'cursor-pointer hover:scale-110 active:scale-95'
                   }`}
-                  style={{ width: nodeSize, height: nodeSize }}
+                  style={{ width: nodeSize, height: nodeSize, minWidth: '48px', minHeight: '48px' }}
                 >
                   {/* Pulse ring for active incomplete */}
                   {isActive && !isCompleted && (
@@ -223,7 +225,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
 
                   {/* Node body */}
                   <div
-                    className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-xl md:text-2xl shadow-lg overflow-hidden"
+                    className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-2xl md:text-3xl shadow-lg overflow-hidden"
                     style={isActive && !isCompleted ? {
                       backgroundColor: el.bg,
                       border: `2px solid ${el.color}88`,
@@ -245,9 +247,9 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
                     )}
 
                     {isLocked ? (
-                      <Lock className="w-4 h-4 text-slate-700" />
+                      <Lock className="w-5 h-5 text-slate-700" />
                     ) : isCompleted ? (
-                      <Star className="w-5 h-5 text-emerald-400" />
+                      <Star className="w-6 h-6 text-emerald-400" />
                     ) : (
                       <span className="relative z-10">{region.icon}</span>
                     )}
@@ -256,7 +258,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
                   {/* Element badge */}
                   {isActive && !isLocked && (
                     <div
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-sm border border-slate-900"
+                      className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-base border border-slate-900"
                       style={{ backgroundColor: el.bg, boxShadow: `0 0 6px ${el.color}44` }}
                     >
                       {el.icon}
@@ -271,17 +273,17 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
 
       {/* Legend bar */}
       <div className="px-4 py-3 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4 text-xs font-bold text-slate-600 uppercase tracking-wider flex-wrap">
+        <div className="flex items-center gap-4 text-sm font-bold text-slate-600 uppercase tracking-wider flex-wrap">
           <span className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-cyan-500/50"></div>
             Available
           </span>
           <span className="flex items-center gap-1.5">
-            <Star className="w-3 h-3 text-emerald-400" />
+            <Star className="w-3.5 h-3.5 text-emerald-400" />
             Cleared
           </span>
           <span className="flex items-center gap-1.5">
-            <Lock className="w-3 h-3 text-slate-700" />
+            <Lock className="w-3.5 h-3.5 text-slate-700" />
             Locked
           </span>
           <span className="flex items-center gap-1.5">
@@ -295,7 +297,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
           {Object.entries(ELEMENTS).filter(([k]) => k !== 'variables').map(([, el]) => (
             <span
               key={el.name}
-              className="text-sm px-1.5 py-0.5 rounded-md font-bold"
+              className="text-base px-1.5 py-0.5 rounded-md font-bold"
               style={{ color: el.color, backgroundColor: el.bg }}
               title={el.name}
             >

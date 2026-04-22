@@ -87,19 +87,19 @@ export default function DialogueBox({ dialogues, onComplete }) {
         >
           {/* Portrait with elemental background */}
           <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-sm border"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-base border"
             style={{ backgroundColor: el.bg, borderColor: el.border }}
           >
             {portraitData.emoji}
           </div>
           <span
-            className="text-sm font-black uppercase tracking-widest"
+            className="text-base font-black uppercase tracking-widest"
             style={{ color: el.color }}
           >
             {current.speaker}
           </span>
           {/* Element indicator */}
-          <span className="text-sm" title={el.name}>{el.icon}</span>
+          <span className="text-base" title={el.name}>{el.icon}</span>
         </div>
 
         {/* Dialogue progress dots */}
@@ -107,7 +107,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
           {dialogues.map((_, i) => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+              className="w-2 h-2 rounded-full transition-all duration-300"
               style={{
                 backgroundColor: i === currentIndex ? el.color : i < currentIndex ? el.color + '55' : '#1e293b',
                 transform: i === currentIndex ? 'scale(1.3)' : 'scale(1)',
@@ -117,7 +117,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
         </div>
 
         {/* Text with cursor */}
-        <p className="text-sm md:text-base text-slate-200 leading-relaxed mt-3 min-h-[3.5rem]">
+        <p className="text-base md:text-lg text-slate-200 leading-relaxed mt-3 min-h-[3.5rem]">
           {displayedText}
           {isTyping && (
             <span
@@ -130,15 +130,15 @@ export default function DialogueBox({ dialogues, onComplete }) {
         {/* Advance hint */}
         {!isTyping && !showChoices && (
           <div className="flex items-center justify-between mt-3">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+            <span className="text-sm font-bold text-slate-700 uppercase tracking-widest">
               {isLast ? 'Press to continue' : `${currentIndex + 1} / ${dialogues.length}`}
             </span>
             <div className="flex items-center gap-1">
-              <span className="text-xs font-bold text-slate-600">
+              <span className="text-sm font-bold text-slate-600">
                 {isLast ? 'Continue' : 'Next'}
               </span>
               <ChevronRight
-                className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
+                className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
                 style={{ color: el.color }}
               />
             </div>
@@ -147,7 +147,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
 
         {isTyping && (
           <div className="flex justify-end mt-3">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Click to skip</span>
+            <span className="text-sm font-bold text-slate-700 uppercase tracking-widest">Click to skip</span>
           </div>
         )}
       </div>
@@ -164,7 +164,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
                 setShowChoices(false);
                 setTimeout(() => onComplete(), 500);
               }}
-              className="text-left px-3 py-2 rounded-xl border text-sm font-bold text-slate-400 transition-all hover:text-white hover:scale-[1.02] active:scale-95"
+              className="text-left px-3 py-2.5 rounded-xl border text-base font-bold text-slate-400 transition-all hover:text-white hover:scale-[1.02] active:scale-95"
               style={{
                 backgroundColor: el.bg,
                 borderColor: el.border,
@@ -172,7 +172,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
               onMouseEnter={e => e.currentTarget.style.color = el.color}
               onMouseLeave={e => e.currentTarget.style.color = ''}
             >
-              <ChevronRight className="w-3 h-3 inline mr-1 opacity-60" />
+              <ChevronRight className="w-3.5 h-3.5 inline mr-1 opacity-60" />
               {reaction}
             </button>
           ))}
@@ -183,7 +183,7 @@ export default function DialogueBox({ dialogues, onComplete }) {
       {chosenReaction && (
         <div className="text-right animate-in fade-in duration-200">
           <span
-            className="text-sm font-bold px-3 py-1.5 rounded-xl inline-block"
+            className="text-base font-bold px-3 py-1.5 rounded-xl inline-block"
             style={{ color: el.color, backgroundColor: el.bg }}
           >
             You: "{chosenReaction}"

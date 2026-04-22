@@ -7,32 +7,41 @@ import { ELEMENTS } from '../../data/rpgQuests';
 
 // Reuse the pyodide singleton
 let pyodidePromise = null;
+const PYODIDE_TIMEOUT_MS = 20000; // 20s timeout for CDN load
 
 function loadPyodide() {
   if (pyodidePromise) return pyodidePromise;
-  pyodidePromise = new Promise((resolve, reject) => {
-    if (window.pyodide) { resolve(window.pyodide); return; }
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.27.4/full/pyodide.js';
-    script.onload = async () => {
-      try {
-        const py = await window.loadPyodide({
-          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.4/full/',
-        });
-        window.pyodide = py;
-        resolve(py);
-      } catch (e) { pyodidePromise = null; reject(e); }
-    };
-    script.onerror = () => { pyodidePromise = null; reject(new Error('Failed to load Pyodide')); };
-    document.head.appendChild(script);
-  });
+  pyodidePromise = Promise.race([
+    new Promise((resolve, reject) => {
+      if (window.pyodide) { resolve(window.pyodide); return; }
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/pyodide/v0.27.4/full/pyodide.js';
+      script.onload = async () => {
+        try {
+          const py = await window.loadPyodide({
+            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.4/full/',
+          });
+          window.pyodide = py;
+          resolve(py);
+        } catch (e) { pyodidePromise = null; reject(e); }
+      };
+      script.onerror = () => { pyodidePromise = null; reject(new Error('Failed to load Pyodide')); };
+      document.head.appendChild(script);
+    }),
+    new Promise((_, reject) =>
+      setTimeout(() => {
+        pyodidePromise = null;
+        reject(new Error('Pyodide load timed out — check your internet connection and try again.'));
+      }, PYODIDE_TIMEOUT_MS)
+    ),
+  ]);
   return pyodidePromise;
 }
 
 function Particle({ x, y, color, symbol }) {
   return (
     <div
-      className="absolute pointer-events-none font-black text-sm animate-bounce select-none"
+      className="absolute pointer-events-none font-black text-base animate-bounce select-none"
       style={{
         left: `${x}%`,
         top: `${y}%`,
@@ -68,6 +77,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
   const [isRunning, setIsRunning] = useState(false);
   const [pyReady, setPyReady] = useState(false);
   const [pyLoading, setPyLoading] = useState(false);
+  const [pyError, setPyError] = useState(null);
   const [hintLevel, setHintLevel] = useState(0);
   const [battleState, setBattleState] = useState('fighting'); // fighting | victory
   const [enemyHp, setEnemyHp] = useState(quest.enemy.hp);
@@ -96,15 +106,24 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
   const ensurePyodide = useCallback(async () => {
     if (pyReady) return true;
     setPyLoading(true);
+    setPyError(null);
     try {
       await loadPyodide();
       setPyReady(true);
       return true;
     } catch (e) {
-      setOutput(`Failed to load Python: ${e.message}`);
+      setPyError(e.message);
+      setOutput(`⚠️ ${e.message}\n\nTap ATTACK again to retry.`);
       return false;
     } finally { setPyLoading(false); }
   }, [pyReady]);
+
+  // Retry Pyodide load
+  const retryPyodide = useCallback(() => {
+    pyodidePromise = null;
+    setPyError(null);
+    ensurePyodide();
+  }, [ensurePyodide]);
 
   const runCode = async () => {
     setIsRunning(true);
@@ -252,7 +271,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
             <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: el.color }}>
               {enemy.isBoss ? 'BOSS DEFEATED!' : 'VICTORY!'}
             </h2>
-            <p className="text-slate-400 text-sm mt-2">
+            <p className="text-slate-400 text-base mt-2">
               You defeated <span className="text-white font-bold">{enemy.name}</span> in{' '}
               <span className="text-white font-bold">{attempts}</span> {attempts === 1 ? 'attempt' : 'attempts'}!
             </p>
@@ -261,17 +280,17 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
           {/* Battle stats */}
           <div className="flex justify-center gap-3 flex-wrap">
             {attempts === 1 && (
-              <div className="px-3 py-1.5 rounded-full text-sm font-black border" style={{ color: el.color, borderColor: el.border, backgroundColor: el.bg }}>
+              <div className="px-3 py-1.5 rounded-full text-base font-black border" style={{ color: el.color, borderColor: el.border, backgroundColor: el.bg }}>
                 ⚡ First Try!
               </div>
             )}
             {hintLevel === 0 && (
-              <div className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 rounded-full text-sm font-black text-purple-400">
+              <div className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 rounded-full text-base font-black text-purple-400">
                 🧠 No Hints Used
               </div>
             )}
             {combo > 1 && (
-              <div className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-sm font-black text-amber-400">
+              <div className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full text-base font-black text-amber-400">
                 🔥 Combo x{combo}
               </div>
             )}
@@ -286,13 +305,13 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
             </div>
             <div className="px-5 py-3 rounded-2xl text-center border" style={{ backgroundColor: el.bg, borderColor: el.border }}>
               <span className="text-2xl block mb-1">{el.icon}</span>
-              <div className="font-black text-sm" style={{ color: el.color }}>{el.name}</div>
+              <div className="font-black text-base" style={{ color: el.color }}>{el.name}</div>
               <div className="text-sm font-bold text-slate-600 uppercase">Affinity</div>
             </div>
             {enemy.isBoss && (
               <div className="px-5 py-3 bg-purple-500/10 border border-purple-500/30 rounded-2xl text-center">
                 <Trophy className="w-5 h-5 text-purple-400 mx-auto mb-1" />
-                <div className="text-purple-400 font-black text-sm">Region!</div>
+                <div className="text-purple-400 font-black text-base">Region!</div>
                 <div className="text-sm font-bold text-slate-600 uppercase">Clear</div>
               </div>
             )}
@@ -301,12 +320,12 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
           {/* Concept mastered */}
           <div className="rounded-xl p-4 mx-auto max-w-sm border" style={{ backgroundColor: el.bg, borderColor: el.border }}>
             <p className="text-sm font-black text-slate-500 uppercase tracking-widest mb-1">Concept Mastered</p>
-            <p className="font-bold" style={{ color: el.color }}>{quest.concept}</p>
+            <p className="font-bold text-base" style={{ color: el.color }}>{quest.concept}</p>
           </div>
 
           <button
             onClick={() => onVictory(quest, { attempts, usedHints: hintLevel, combo })}
-            className="px-10 py-4 text-white rounded-xl font-black text-sm transition-all hover:scale-105 active:scale-95 uppercase tracking-wider shadow-lg"
+            className="px-10 py-4 text-white rounded-xl font-black text-base transition-all hover:scale-105 active:scale-95 uppercase tracking-wider shadow-lg"
             style={{ background: `linear-gradient(to right, ${el.color}cc, ${el.color}88)`, boxShadow: `0 8px 24px ${el.color}33` }}
           >
             Continue Adventure <ChevronRight className="w-4 h-4 inline ml-1" />
@@ -354,7 +373,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
               {/* Hit label popup */}
               {hitLabel && (
                 <div
-                  className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-black uppercase tracking-wider animate-bounce"
+                  className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-base font-black uppercase tracking-wider animate-bounce"
                   style={{ color: el.color, textShadow: `0 0 8px ${el.color}` }}
                 >
                   {hitLabel}
@@ -363,7 +382,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
 
               {/* Element icon badge */}
               <div
-                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-sm border border-slate-900"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-base border border-slate-900"
                 style={{ backgroundColor: el.bg }}
               >
                 {el.icon}
@@ -371,14 +390,14 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
             </div>
 
             <div>
-              <h3 className="font-black text-sm text-white flex items-center gap-1.5">
+              <h3 className="font-black text-base text-white flex items-center gap-1.5">
                 {enemy.isBoss && <span className="text-amber-400">👑</span>}
                 {enemy.name}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-sm font-bold text-slate-500">{quest.concept}</span>
                 <span
-                  className="text-xs font-black px-1.5 py-0.5 rounded uppercase tracking-wider"
+                  className="text-sm font-black px-1.5 py-0.5 rounded uppercase tracking-wider"
                   style={enemy.isBoss
                     ? { color: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)' }
                     : { color: el.color, backgroundColor: el.bg }
@@ -393,8 +412,8 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
           {/* HP counter */}
           <div className="text-right">
             <div className="flex items-center gap-1.5 justify-end">
-              <Heart className="w-3.5 h-3.5 text-red-400" />
-              <span className="text-sm font-black tabular-nums" style={{ color: hpBarColor }}>{enemyHp}</span>
+              <Heart className="w-4 h-4 text-red-400" />
+              <span className="text-base font-black tabular-nums" style={{ color: hpBarColor }}>{enemyHp}</span>
               <span className="text-sm text-slate-600 font-bold">/ {enemy.hp}</span>
             </div>
             {combo > 1 && (
@@ -422,12 +441,12 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
 
       {/* Quest story & instructions */}
       <div className="rounded-xl p-4 space-y-3 border" style={{ backgroundColor: el.bg + '40', borderColor: el.border }}>
-        <p className="text-sm text-slate-300 leading-relaxed italic">"{quest.story}"</p>
+        <p className="text-base text-slate-300 leading-relaxed italic">"{quest.story}"</p>
         <div className="pt-2 border-t border-slate-800/50">
           <p className="text-sm font-black uppercase tracking-widest mb-1.5" style={{ color: el.color }}>
             {el.icon} Mission Objective
           </p>
-          <p className="text-sm text-slate-200 font-medium leading-relaxed">{quest.instructions}</p>
+          <p className="text-base text-slate-200 font-medium leading-relaxed">{quest.instructions}</p>
         </div>
       </div>
 
@@ -445,7 +464,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
           </div>
           <div className="flex items-center gap-2">
             {/* Keyboard hint */}
-            <span className="hidden sm:flex items-center gap-1 text-xs font-bold text-slate-700 border border-slate-800 rounded px-1.5 py-0.5">
+            <span className="hidden sm:flex items-center gap-1 text-sm font-bold text-slate-700 border border-slate-800 rounded px-1.5 py-0.5">
               Ctrl+↵ Attack
             </span>
             <button
@@ -453,21 +472,21 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
               className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors"
               title="Reset code"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-4 h-4" />
             </button>
             <button
               onClick={runCode}
               disabled={isRunning || pyLoading}
-              className="ml-1 px-4 py-1.5 rounded-lg text-sm font-black flex items-center gap-1.5 transition-all disabled:opacity-50 hover:scale-105 active:scale-95 uppercase tracking-wider text-white"
+              className="ml-1 px-4 py-1.5 rounded-lg text-base font-black flex items-center gap-1.5 transition-all disabled:opacity-50 hover:scale-105 active:scale-95 uppercase tracking-wider text-white"
               style={{
                 background: `linear-gradient(to right, ${el.color}cc, ${el.color}88)`,
                 boxShadow: `0 4px 12px ${el.color}33`,
               }}
             >
               {isRunning || pyLoading ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Swords className="w-3 h-3" />
+                <Swords className="w-4 h-4" />
               )}
               {pyLoading ? 'Loading...' : isRunning ? 'Running...' : 'ATTACK!'}
             </button>
@@ -475,7 +494,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
         </div>
 
         {/* Editor with line numbers */}
-        <div className="relative flex" style={{ minHeight: '180px', maxHeight: '360px' }}>
+        <div className="relative flex" style={{ minHeight: '200px', maxHeight: '400px' }}>
           <div
             ref={lineCountRef}
             className="w-10 flex-shrink-0 bg-slate-950 text-right pr-2 py-3 text-sm text-slate-700 font-mono leading-[1.625rem] select-none overflow-hidden border-r border-slate-900/80"
@@ -492,7 +511,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
             onScroll={handleScroll}
             spellCheck={false}
             className="flex-1 bg-transparent text-cyan-200 font-mono text-sm leading-[1.625rem] p-3 resize-none outline-none overflow-auto"
-            style={{ tabSize: 4, minHeight: '180px', maxHeight: '360px' }}
+            style={{ tabSize: 4, minHeight: '200px', maxHeight: '400px', fontSize: '15px' }}
           />
         </div>
 
@@ -507,9 +526,22 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
               }`} />
               <span className="text-sm font-black text-slate-600 uppercase tracking-widest">Output</span>
             </div>
-            <pre className="px-4 py-3 text-sm font-mono text-slate-300 max-h-48 overflow-auto whitespace-pre-wrap leading-relaxed">
+            <pre className="px-4 py-3 text-sm font-mono text-slate-300 max-h-48 overflow-auto whitespace-pre-wrap leading-relaxed" style={{ fontSize: '14px' }}>
               {isRunning ? `${el.icon} Casting spell...` : output}
             </pre>
+          </div>
+        )}
+
+        {/* Pyodide error with retry */}
+        {pyError && (
+          <div className="px-4 py-3 border-t border-red-500/30 bg-red-500/5 flex items-center justify-between">
+            <span className="text-sm text-red-400 font-bold">⚠️ {pyError}</span>
+            <button
+              onClick={retryPyodide}
+              className="px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-sm font-black text-red-400 hover:bg-red-500/20 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         )}
 
@@ -527,21 +559,21 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
             key={i}
             onClick={() => setHintLevel(i + 1)}
             disabled={hintLevel > i}
-            className={`px-3 py-1.5 rounded-lg text-sm font-black uppercase tracking-wider transition-all ${
+            className={`px-3 py-2 rounded-lg text-base font-black uppercase tracking-wider transition-all ${
               hintLevel > i
                 ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
                 : 'bg-slate-900 border border-slate-800 text-slate-600 hover:border-amber-500/30 hover:text-amber-400'
             }`}
           >
-            <Lightbulb className="w-3 h-3 inline mr-1" />
+            <Lightbulb className="w-4 h-4 inline mr-1" />
             Hint {i + 1}
           </button>
         ))}
         <button
           onClick={onRetreat}
-          className="ml-auto px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-sm font-bold text-slate-600 hover:text-red-400 hover:border-red-500/30 transition-colors uppercase tracking-wider"
+          className="ml-auto px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-base font-bold text-slate-600 hover:text-red-400 hover:border-red-500/30 transition-colors uppercase tracking-wider"
         >
-          <Shield className="w-3 h-3 inline mr-1" />
+          <Shield className="w-4 h-4 inline mr-1" />
           Retreat
         </button>
       </div>
@@ -552,7 +584,7 @@ export default function BattleScreen({ quest, onVictory, onRetreat, playerStats,
           <p className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2">
             💡 Hint {hintLevel}
           </p>
-          <p className="text-sm text-amber-200/80 font-mono whitespace-pre-wrap leading-relaxed">
+          <p className="text-base text-amber-200/80 font-mono whitespace-pre-wrap leading-relaxed">
             {quest.hints[hintLevel - 1]}
           </p>
         </div>
