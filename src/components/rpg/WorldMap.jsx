@@ -2,20 +2,20 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Lock, Star } from 'lucide-react';
 import { ELEMENTS, REGION_ELEMENTS } from '../../data/rpgQuests';
 
-// Winding path positions for 8 regions
+// Winding path positions for 8 regions — centered vertically with label clearance
 const regionPositions = [
-  { top: '78%', left: '10%' },
-  { top: '62%', left: '26%' },
-  { top: '48%', left: '44%' },
-  { top: '34%', left: '62%' },
-  { top: '20%', left: '80%' },
-  { top: '22%', left: '58%' },
-  { top: '14%', left: '36%' },
-  { top: '10%', left: '14%' },
+  { top: '82%', left: '12%' },
+  { top: '70%', left: '28%' },
+  { top: '56%', left: '46%' },
+  { top: '43%', left: '64%' },
+  { top: '32%', left: '82%' },
+  { top: '36%', left: '60%' },
+  { top: '28%', left: '38%' },
+  { top: '24%', left: '16%' },
 ];
 
 // SVG path connecting all region centers
-const PATH_D = 'M 10 78 Q 18 70 26 62 Q 35 55 44 48 Q 53 41 62 34 Q 71 27 80 20 Q 69 21 58 22 Q 47 18 36 14 Q 25 12 14 10';
+const PATH_D = 'M 12 82 Q 20 76 28 70 Q 37 63 46 56 Q 55 49 64 43 Q 73 37 82 32 Q 71 34 60 36 Q 49 32 38 28 Q 27 26 16 24';
 
 function ElementParticles({ element, count = 6 }) {
   const el = ELEMENTS[element];
@@ -74,18 +74,21 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
   const [hoveredRegion, setHoveredRegion] = useState(null);
 
   return (
-    <div className="relative w-full rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl" style={{ overflow: 'clip' }}>
+    <div className="relative w-full rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl" style={{ overflow: 'clip' }}>
       {/* Map background */}
-      <div className="relative w-full" style={{ paddingBottom: '52%', minHeight: '400px' }}>
+      <div className="relative w-full" style={{ paddingBottom: '58%', minHeight: '440px' }}>
         {/* Layered background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Base gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-950" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900" />
+
+          {/* Center radial glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] rounded-full bg-indigo-800/15 blur-3xl" />
 
           {/* Terrain texture blobs */}
-          <div className="absolute top-1/3 left-1/2 w-48 h-48 bg-cyan-950/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-purple-950/20 rounded-full blur-3xl" />
-          <div className="absolute top-1/4 left-1/4 w-40 h-40 bg-amber-950/15 rounded-full blur-3xl" />
+          <div className="absolute top-1/3 left-1/2 w-56 h-56 bg-cyan-800/25 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-800/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-48 h-48 bg-amber-800/15 rounded-full blur-3xl" />
 
           {/* Animated star field */}
           {Array.from({ length: 40 }, (_, i) => (
@@ -99,7 +102,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
                 left: `${(i * 11.7 + 5) % 100}%`,
                 animationDelay: `${(i * 0.3) % 4}s`,
                 animationDuration: `${2 + (i * 0.17) % 2}s`,
-                opacity: 0.15 + (i % 5) * 0.08,
+                opacity: 0.25 + (i % 5) * 0.1,
               }}
             />
           ))}
@@ -120,7 +123,7 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
             <path
               d={PATH_D}
               fill="none"
-              stroke="rgba(100,116,139,0.25)"
+              stroke="rgba(100,116,139,0.4)"
               strokeWidth="0.4"
               strokeDasharray="1.5,1.5"
             />
@@ -272,8 +275,8 @@ export default function WorldMap({ regions, playerAR, playerLevel, completedRegi
       </div>
 
       {/* Legend bar */}
-      <div className="px-4 py-3 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-4 text-sm font-bold text-slate-600 uppercase tracking-wider flex-wrap">
+      <div className="px-4 py-3 bg-slate-800/90 border-t border-slate-700 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-4 text-sm font-bold text-slate-400 uppercase tracking-wider flex-wrap">
           <span className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-cyan-500/50"></div>
             Available
